@@ -116,6 +116,7 @@ while(a>5):
                                                     order_number=dict_PO_1["orderNumber"])
                                                 dict_Order_status_1 = eval(Order_status_1)
                                                 if dict_Order_status_1["orderStatus"] == "EXECUTED":
+                                                    exitt1=1
                                                     break
                                                 elif float(dict_samco_stream["ltp"]) > 1.0035 * df_ltp:
                                                     PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
@@ -236,14 +237,11 @@ while(a>5):
                             break
                 if dt.now().strftime("%I:%M %p") == "02:00 PM":
                     break
+            if dt.now().strftime("%I:%M %p") == "02:00 PM":
+                break
     if dt.now().strftime("%I:%M %p")=="02:00 PM":
         break
 
 
 print('program ended')
 samco.logout()
-
-
-
-
-
