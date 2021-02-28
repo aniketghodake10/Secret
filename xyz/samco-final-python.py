@@ -102,6 +102,7 @@ while(a>5):
                                         Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
                                         dict_Order_status = eval(Order_status)
                                         if dict_Order_status["orderStatus"] == "EXECUTED":
+                                            print('SELL EXECUTED')
                                             PO_1 = samco.place_order(
                                                 body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                                       "transactionType": samco.TRANSACTION_TYPE_BUY,
@@ -116,7 +117,7 @@ while(a>5):
                                                     order_number=dict_PO_1["orderNumber"])
                                                 dict_Order_status_1 = eval(Order_status_1)
                                                 if dict_Order_status_1["orderStatus"] == "EXECUTED":
-                                                    exitt1=1
+                                                    print('BUY EXECUTED')
                                                     break
                                                 elif float(dict_samco_stream["ltp"]) > 1.0035 * df_ltp:
                                                     PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
@@ -129,6 +130,7 @@ while(a>5):
                                                             order_number=dict_PO_1["orderNumber"])
                                                         dict_Order_status_2 = eval(Order_status_2)
                                                         if dict_Order_status_2["orderStatus"] == "EXECUTED":
+                                                            print('BUY EXECUTED')
                                                             break
                                                     break
                                                 elif dt.now().strftime("%I:%M %p") == "02:00 PM":
@@ -142,6 +144,7 @@ while(a>5):
                                                             order_number=dict_PO_1["orderNumber"])
                                                         dict_Order_status_3 = eval(Order_status_3)
                                                         if dict_Order_status_3["orderStatus"] == "EXECUTED":
+                                                            print('BUY EXECUTED')
                                                             break
                                                     break
                                             break
@@ -183,6 +186,7 @@ while(a>5):
                                         Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
                                         dict_Order_status = eval(Order_status)
                                         if dict_Order_status["orderStatus"] == "EXECUTED":
+                                            print('BUY EXECUTED')
                                             PO_1 = samco.place_order(
                                                 body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                                       "transactionType": samco.TRANSACTION_TYPE_SELL,
@@ -197,6 +201,7 @@ while(a>5):
                                                     order_number=dict_PO_1["orderNumber"])
                                                 dict_Order_status_1 = eval(Order_status_1)
                                                 if dict_Order_status_1["orderStatus"] == "EXECUTED":
+                                                    print('SELL EXECUTED')
                                                     break
                                                 elif float(dict_samco_stream["ltp"]) < 0.9965 * df_ltp:
                                                     PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
@@ -209,6 +214,7 @@ while(a>5):
                                                             order_number=dict_PO_1["orderNumber"])
                                                         dict_Order_status_2 = eval(Order_status_2)
                                                         if dict_Order_status_2["orderStatus"] == "EXECUTED":
+                                                            print('SELL EXECUTED')
                                                             break
                                                     break
                                                 elif dt.now().strftime("%I:%M %p") == "02:00 PM":
@@ -222,6 +228,7 @@ while(a>5):
                                                             order_number=dict_PO_1["orderNumber"])
                                                         dict_Order_status_3 = eval(Order_status_3)
                                                         if dict_Order_status_3["orderStatus"] == "EXECUTED":
+                                                            print('SELL EXECUTED')
                                                             break
                                                     break
                                             break
