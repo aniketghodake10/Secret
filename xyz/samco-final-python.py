@@ -7,6 +7,15 @@ import yfinance as yf
 from datetime import datetime as dt
 from datetime import timedelta as td
 
+###     FUNCTIONS  ###
+def time_exceed(time_in_hours_24hour_format):
+    exceed=0
+    time2=dt.now()
+    if time2.hour>=time_in_hours_24hour_format:
+        exceed=time_in_hours_24hour_format
+
+###     FUNCTIONS  ###
+
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 samco=StocknoteAPIPythonBridge()
 
@@ -14,17 +23,19 @@ userId=input("Enter Samco userId : ")
 password=input("Enter Samco Password : ")
 yob=input("Enter Samco Year Of Birth : ")
 login=samco.login(body={"userId":userId,'password':password,'yob':yob})
-print(login)
+print('Login Details\n',login)
 login=eval(login)
 
 samco.set_session_token(sessionToken=login['sessionToken'])
 
 
-Stock = input('Enter Stock Name in .NS form : ')
-qty=int(input('Enter quantity = '))
-qty=str(qty)
-Stock_samco=Stock[:-3]
+
+Stock_samco=input('Enter Stock Name : ')
+Stock = Stock_samco+'.NS'
 Stock_samco_EQ=Stock[:-3]+'-EQ'
+qty=int(input('HOW MUCH QUANTITY TO TRADE TODAYYY = '))
+qty=str(qty)
+
 
 
 csv_1=pd.read_csv('ScripMaster.csv')
@@ -133,7 +144,8 @@ while(a>5):
                                                             print('BUY EXECUTED')
                                                             break
                                                     break
-                                                elif dt.now().strftime("%I:%M %p") == "02:00 PM":
+                                                time_exceed(14)
+                                                elif exceed==14:
                                                     PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
                                                                               body={
                                                                                   "orderType": samco.ORDER_TYPE_MARKET,
@@ -217,7 +229,8 @@ while(a>5):
                                                             print('SELL EXECUTED')
                                                             break
                                                     break
-                                                elif dt.now().strftime("%I:%M %p") == "02:00 PM":
+                                                time_exceed(14)
+                                                elif exceed==14:
                                                     PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
                                                                               body={
                                                                                   "orderType": samco.ORDER_TYPE_MARKET,
@@ -242,11 +255,14 @@ while(a>5):
                         time_diff_1 = time_4 - time_1
                         if (time_diff_1 > time_m) == True:
                             break
-                if dt.now().strftime("%I:%M %p") == "02:00 PM":
+                time_exceed(14)
+                if exceed==14:
                     break
-            if dt.now().strftime("%I:%M %p") == "02:00 PM":
+            time_exceed(14)
+            if exceed==14:
                 break
-    if dt.now().strftime("%I:%M %p")=="02:00 PM":
+    time_exceed(14)
+    if exceed==14:
         break
 
 
