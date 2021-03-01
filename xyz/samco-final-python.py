@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 from datetime import datetime as dt
 from datetime import timedelta as td
+from bs4 import BeautifulSoup
+from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 
 ###     FUNCTIONS  ###
 
@@ -44,10 +46,20 @@ def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
 
     return stochrsii_K[-1], df[-1]
 
+
+def live_price(Stock):
+    stockcode = Stock.lower()
+
+    stock_url = 'https://in.finance.yahoo.com/quote/' + stockcode
+    response = requests.get(stock_url)
+    soup = BeautifulSoup(response.text, 'lxml')
+    price = soup.find_all('div', {'class': 'My(6px) Pos(r) smartphone_Mt(6px)'})[0].find('span').text
+    price=float(price)
+    return price
+
 ###     FUNCTIONS  ###
 
 
-from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 samco=StocknoteAPIPythonBridge()
 
 userId=input("Enter Samco userId : ")
@@ -75,6 +87,10 @@ dict_Stock2=dict(zip(Stock1,Stock_samco1))
 qty=int(input('HOW MUCH QUANTITY TO TRADE TODAYYY = '))
 qty=str(qty)
 
+startt_time = int(input('Enter Start time in hrs in 24hr format = '))
+endd_time = int(input('Enter End time in hrs in 24hr format = '))
+
+
 
 
 csv_1=pd.read_csv('ScripMaster.csv')
@@ -86,12 +102,16 @@ dict_symboCode=dict(zip(w.tradingSymbol,w.symbolCode))
 
 
 
-a=6
-while(a>5):
-    time_exceed(10)
-    if exceed==10:
-        b=6
-        while(b>5):
+while True:
+    time_exceed(endd_time)
+    if exceed == endd_time:
+        break
+    time_exceed(startt_time)
+    if exceed==startt_time:
+        while True:
+            time_exceed(endd_time)
+            if exceed == endd_time:
+                break
             for Stock2 in Stock1:
                 stochRSI, df_ltp=stochrsi(Stock2)
                 stochRSI = float('{:.3f}'.format(100 * stochRSI))
@@ -101,187 +121,182 @@ while(a>5):
                     Stock_samco=dict_Stock2[Stock]
                     print('WEoooooo WE got the Stock')
                     break
-                time_exceed(14)
-                if exceed==14:
-                    break
 
             if stochRSI==100 or stochRSI==0:
+
                 if stochRSI == 100:
-                    value = [{"symbol": symbolCode}]
-                    samco.set_streaming_data(value)
-                    samco_stream = samco.start_streaming()
-                    dict_samco_stream = eval(samco_stream)
-
-                    c = 6
                     time_1 = dt.now()
-                    while (c > 5):
-                        if float(dict_samco_stream['ltp']) > 1.001 * df_ltp:
-                            d = 6
-                            time_2 = dt.now()
-                            while (d > 5):
-                                if float(dict_samco_stream['ltp']) == df_ltp:
-                                    PO = samco.place_order(
-                                        body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
-                                              "transactionType": samco.TRANSACTION_TYPE_SELL,
-                                              "orderType": samco.ORDER_TYPE_MARKET, "price": "",
-                                              "quantity": qty, "disclosedQuantity": "",
-                                              "orderValidity": samco.VALIDITY_DAY,
-                                              "productType": samco.PRODUCT_MIS,
-                                              "afterMarketOrderFlag": "NO"})
-                                    dict_PO = eval(PO)
-                                    e = 6
-                                    while (e > 5):
-                                        Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
-                                        dict_Order_status = eval(Order_status)
-                                        if dict_Order_status["orderStatus"] == "EXECUTED":
-                                            print('SELL EXECUTED')
-                                            PO_1 = samco.place_order(
-                                                body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
-                                                      "transactionType": samco.TRANSACTION_TYPE_BUY,
-                                                      "orderType": samco.ORDER_TYPE_LIMIT, "price": str(0.997 * df_ltp),
-                                                      "quantity": qty,
-                                                      "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
-                                                      "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
-                                            dict_PO_1 = eval(PO_1)
-                                            f = 6
-                                            while (f > 5):
-                                                Order_status_1 = samco.get_order_status(
-                                                    order_number=dict_PO_1["orderNumber"])
-                                                dict_Order_status_1 = eval(Order_status_1)
-                                                if dict_Order_status_1["orderStatus"] == "EXECUTED":
-                                                    print('BUY EXECUTED')
-                                                    break
-                                                elif float(dict_samco_stream["ltp"]) > 1.0035 * df_ltp:
-                                                    PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
-                                                                              body={
-                                                                                  "orderType": samco.ORDER_TYPE_MARKET,
-                                                                                  "price": ""})
-                                                    g = 6
-                                                    while (g > 5):
-                                                        Order_status_2 = samco.get_order_status(
-                                                            order_number=dict_PO_1["orderNumber"])
-                                                        dict_Order_status_2 = eval(Order_status_2)
-                                                        if dict_Order_status_2["orderStatus"] == "EXECUTED":
-                                                            print('BUY EXECUTED')
-                                                            break
-                                                    break
-                                                time_exceed(14)
-                                                if exceed==14:
-                                                    PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
-                                                                              body={
-                                                                                  "orderType": samco.ORDER_TYPE_MARKET,
-                                                                                  "price": ""})
-                                                    h = 6
-                                                    while (h > 5):
-                                                        Order_status_3 = samco.get_order_status(
-                                                            order_number=dict_PO_1["orderNumber"])
-                                                        dict_Order_status_3 = eval(Order_status_3)
-                                                        if dict_Order_status_3["orderStatus"] == "EXECUTED":
-                                                            print('BUY EXECUTED')
-                                                            break
-                                                    break
-                                            break
-                                    break
-                                time_3 = dt.now()
-                                time_diff_2 = time_3 - time_2
-                                if (time_diff_2 > time_m) == True:
-                                    break
+                    while True:
+                        price = live_price(Stock)
+                        print(price)
+                        if price > 1.001 * df_ltp:
                             break
                         time_4 = dt.now()
                         time_diff_1 = time_4 - time_1
                         if (time_diff_1 > time_m) == True:
                             break
+                    time_2 = dt.now()
+                    while True:
+                        price = live_price(Stock)
+                        print(price)
+                        if price == df_ltp:
+                            break
+                        time_3 = dt.now()
+                        time_diff_2 = time_3 - time_2
+                        if (time_diff_2 > time_m) == True:
+                            break
+                    PO = samco.place_order(
+                                body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
+                                      "transactionType": samco.TRANSACTION_TYPE_SELL,
+                                      "orderType": samco.ORDER_TYPE_MARKET, "price": "",
+                                      "quantity": qty, "disclosedQuantity": "",
+                                      "orderValidity": samco.VALIDITY_DAY,
+                                      "productType": samco.PRODUCT_MIS,
+                                      "afterMarketOrderFlag": "NO"})
+                    dict_PO = eval(PO)
+                    while True:
+                        Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
+                        dict_Order_status = eval(Order_status)
+                        if dict_Order_status["orderStatus"] == "EXECUTED":
+                            print('SELL EXECUTED')
+                            PO_1 = samco.place_order(body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
+                                      "transactionType": samco.TRANSACTION_TYPE_BUY,
+                                      "orderType": samco.ORDER_TYPE_LIMIT, "price": str(0.997 * df_ltp),
+                                      "quantity": qty,
+                                      "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
+                                      "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
+                            dict_PO_1 = eval(PO_1)
+                            while True:
+                                Order_status_1 = samco.get_order_status(
+                                    order_number=dict_PO_1["orderNumber"])
+                                dict_Order_status_1 = eval(Order_status_1)
+                                if dict_Order_status_1["orderStatus"] == "EXECUTED":
+                                    print('BUY EXECUTED')
+                                    done=1
+                                    break
+                                price = live_price(Stock)
+                                print(price)
+                                if price > 1.0035 * df_ltp:
+                                    done=2
+                                    break
+                                time_exceed(endd_time)
+                                if exceed == endd_time:
+                                    done=3
+                                    break
+                            if done==1:
+                                break
+                            if done==2:
+                                PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],body={
+                                                              "orderType": samco.ORDER_TYPE_MARKET,
+                                                              "price": ""})
+                                while True:
+                                    Order_status_2 = samco.get_order_status(
+                                        order_number=dict_PO_1["orderNumber"])
+                                    dict_Order_status_2 = eval(Order_status_2)
+                                    if dict_Order_status_2["orderStatus"] == "EXECUTED":
+                                        print('BUY EXECUTED')
+                                        break
+                                break
+                            if done==3:
+                                PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
+                                                          body={
+                                                              "orderType": samco.ORDER_TYPE_MARKET,
+                                                              "price": ""})
+                                while True:
+                                    Order_status_3 = samco.get_order_status(
+                                        order_number=dict_PO_1["orderNumber"])
+                                    dict_Order_status_3 = eval(Order_status_3)
+                                    if dict_Order_status_3["orderStatus"] == "EXECUTED":
+                                        print('BUY EXECUTED')
+                                        break
+                            break
+
                 if stochRSI == 0:
-                    value = [{"symbol": symbolCode}]
-                    samco.set_streaming_data(value)
-                    samco_stream = samco.start_streaming()
-                    dict_samco_stream = eval(samco_stream)
-
-                    c = 6
                     time_1 = dt.now()
-                    while (c > 5):
-                        if float(dict_samco_stream['ltp']) < 0.999 * df_ltp:
-                            d = 6
-                            time_2 = dt.now()
-                            while (d > 5):
-                                if float(dict_samco_stream['ltp']) == df_ltp:
-                                    PO = samco.place_order(
-                                        body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
-                                              "transactionType": samco.TRANSACTION_TYPE_BUY,
-                                              "orderType": samco.ORDER_TYPE_MARKET, "price": "",
-                                              "quantity": qty, "disclosedQuantity": "",
-                                              "orderValidity": samco.VALIDITY_DAY,
-                                              "productType": samco.PRODUCT_MIS,
-                                              "afterMarketOrderFlag": "NO"})
-                                    dict_PO = eval(PO)
-                                    e = 6
-                                    while (e > 5):
-                                        Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
-                                        dict_Order_status = eval(Order_status)
-                                        if dict_Order_status["orderStatus"] == "EXECUTED":
-                                            print('BUY EXECUTED')
-                                            PO_1 = samco.place_order(
-                                                body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
-                                                      "transactionType": samco.TRANSACTION_TYPE_SELL,
-                                                      "orderType": samco.ORDER_TYPE_LIMIT, "price": str(1.003 * df_ltp),
-                                                      "quantity": qty,
-                                                      "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
-                                                      "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
-                                            dict_PO_1 = eval(PO_1)
-                                            f = 6
-                                            while (f > 5):
-                                                Order_status_1 = samco.get_order_status(
-                                                    order_number=dict_PO_1["orderNumber"])
-                                                dict_Order_status_1 = eval(Order_status_1)
-                                                if dict_Order_status_1["orderStatus"] == "EXECUTED":
-                                                    print('SELL EXECUTED')
-                                                    break
-                                                elif float(dict_samco_stream["ltp"]) < 0.9965 * df_ltp:
-                                                    PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
-                                                                              body={
-                                                                                  "orderType": samco.ORDER_TYPE_MARKET,
-                                                                                  "price": ""})
-                                                    g = 6
-                                                    while (g > 5):
-                                                        Order_status_2 = samco.get_order_status(
-                                                            order_number=dict_PO_1["orderNumber"])
-                                                        dict_Order_status_2 = eval(Order_status_2)
-                                                        if dict_Order_status_2["orderStatus"] == "EXECUTED":
-                                                            print('SELL EXECUTED')
-                                                            break
-                                                    break
-                                                time_exceed(14)
-                                                if exceed==14:
-                                                    PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
-                                                                              body={
-                                                                                  "orderType": samco.ORDER_TYPE_MARKET,
-                                                                                  "price": ""})
-                                                    h = 6
-                                                    while (h > 5):
-                                                        Order_status_3 = samco.get_order_status(
-                                                            order_number=dict_PO_1["orderNumber"])
-                                                        dict_Order_status_3 = eval(Order_status_3)
-                                                        if dict_Order_status_3["orderStatus"] == "EXECUTED":
-                                                            print('SELL EXECUTED')
-                                                            break
-                                                    break
-                                            break
-                                    break
-                                time_3 = dt.now()
-                                time_diff_2 = time_3 - time_2
-                                if (time_diff_2 > time_m) == True:
-                                    break
+                    while True:
+                        price = live_price(Stock)
+                        print(price)
+                        if price < 0.999 * df_ltp:
                             break
                         time_4 = dt.now()
                         time_diff_1 = time_4 - time_1
                         if (time_diff_1 > time_m) == True:
                             break
-                time_exceed(14)
-                if exceed==14:
-                    break
-    time_exceed(14)
-    if exceed==14:
-        break
+                    time_2 = dt.now()
+                    while True:
+                        price = live_price(Stock)
+                        print(price)
+                        if price == df_ltp:
+                            break
+                        time_3 = dt.now()
+                        time_diff_2 = time_3 - time_2
+                        if (time_diff_2 > time_m) == True:
+                            break
+                    PO = samco.place_order(
+                                body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
+                                      "transactionType": samco.TRANSACTION_TYPE_BUY,
+                                      "orderType": samco.ORDER_TYPE_MARKET, "price": "",
+                                      "quantity": qty, "disclosedQuantity": "",
+                                      "orderValidity": samco.VALIDITY_DAY,
+                                      "productType": samco.PRODUCT_MIS,
+                                      "afterMarketOrderFlag": "NO"})
+                    dict_PO = eval(PO)
+                    while True:
+                        Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
+                        dict_Order_status = eval(Order_status)
+                        if dict_Order_status["orderStatus"] == "EXECUTED":
+                            print('SELL EXECUTED')
+                            PO_1 = samco.place_order(body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
+                                      "transactionType": samco.TRANSACTION_TYPE_SELL,
+                                      "orderType": samco.ORDER_TYPE_LIMIT, "price": str(1.003 * df_ltp),
+                                      "quantity": qty,
+                                      "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
+                                      "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
+                            dict_PO_1 = eval(PO_1)
+                            while True:
+                                Order_status_1 = samco.get_order_status(
+                                    order_number=dict_PO_1["orderNumber"])
+                                dict_Order_status_1 = eval(Order_status_1)
+                                if dict_Order_status_1["orderStatus"] == "EXECUTED":
+                                    print('BUY EXECUTED')
+                                    done=1
+                                    break
+                                price = live_price(Stock)
+                                print(price)
+                                if price < 0.9965 * df_ltp:
+                                    done=2
+                                    break
+                                time_exceed(endd_time)
+                                if exceed == endd_time:
+                                    done=3
+                                    break
+                            if done==1:
+                                break
+                            if done==2:
+                                PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],body={
+                                                              "orderType": samco.ORDER_TYPE_MARKET,
+                                                              "price": ""})
+                                while True:
+                                    Order_status_2 = samco.get_order_status(
+                                        order_number=dict_PO_1["orderNumber"])
+                                    dict_Order_status_2 = eval(Order_status_2)
+                                    if dict_Order_status_2["orderStatus"] == "EXECUTED":
+                                        print('BUY EXECUTED')
+                                        break
+                                break
+                            if done==3:
+                                PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
+                                                          body={
+                                                              "orderType": samco.ORDER_TYPE_MARKET,
+                                                              "price": ""})
+                                while True:
+                                    Order_status_3 = samco.get_order_status(
+                                        order_number=dict_PO_1["orderNumber"])
+                                    dict_Order_status_3 = eval(Order_status_3)
+                                    if dict_Order_status_3["orderStatus"] == "EXECUTED":
+                                        print('BUY EXECUTED')
+                                        break
+                            break
 
 
 print('program ended')
