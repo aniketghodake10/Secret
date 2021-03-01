@@ -82,7 +82,11 @@ samco.set_session_token(sessionToken=login['sessionToken'])
 
 
 
-Stock_samco1=input('Enter Stock Name in List format : ')
+csv_2=pd.read_csv('ind_nifty50list.csv')
+Stock_samco1=csv_2.loc[:, 'Symbol':'Symbol']
+Stock_samco1=Stock_samco1.Symbol
+Stock_samco1=Stock_samco1.tolist()
+
 Stock1 = []
 Stock_samco_EQ= []
 for i in Stock_samco1:
