@@ -8,13 +8,44 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 
 ###     FUNCTIONS  ###
+
+exceed=0
+
+time_m=td(seconds=300)
+
 def time_exceed(time_in_hours_24hour_format):
     exceed=0
     time2=dt.now()
     if time2.hour>=time_in_hours_24hour_format:
         exceed=time_in_hours_24hour_format
 
+
+def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
+    df_5 = yf.download(tickers=tickerr, period='2d', interval='5m')
+    df = df_5['Close']
+    delta = df_5['Close'].diff(1)
+    delta.dropna(inplace=True)
+    gain, loss = delta.copy(), delta.copy()
+    gain[gain < 0] = 0
+    loss[loss > 0] = 0
+
+    _gain = gain.ewm(com=(period - 1), min_periods=period).mean()
+    _loss = loss.abs().ewm(com=(period - 1), min_periods=period).mean()
+
+    RS = _gain / _loss
+    rsii = 100 - (100 / (1 + RS))
+
+    stochrsii = (rsii - rsii.rolling(period).min()) / (
+            rsii.rolling(period).max() - rsii.rolling(period).min())
+    # stochrsii_K = stochrsii.ewm(span=smoothK).mean()
+    # stochrsii_D = stochrsii_K.ewm(span=smoothD).mean()
+    stochrsii_K = stochrsii.rolling(smoothK).mean()
+    stochrsii_D = stochrsii_K.rolling(smoothD).mean()
+
+    return stochrsii_K[-1], df[-1]
+
 ###     FUNCTIONS  ###
+
 
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 samco=StocknoteAPIPythonBridge()
@@ -30,9 +61,17 @@ samco.set_session_token(sessionToken=login['sessionToken'])
 
 
 
-Stock_samco=input('Enter Stock Name : ')
-Stock = Stock_samco+'.NS'
-Stock_samco_EQ=Stock[:-3]+'-EQ'
+Stock_samco1=input('Enter Stock Name in List format : ')
+Stock1 = []
+Stock_samco_EQ= []
+for i in Stock_samco1:
+    j= i + '.NS'
+    k= i + '-EQ'
+    Stock1.append(j)
+    Stock_samco_EQ.append(k)
+dict_Stock1=dict(zip(Stock1,Stock_samco_EQ))
+dict_Stock2=dict(zip(Stock1,Stock_samco1))
+
 qty=int(input('HOW MUCH QUANTITY TO TRADE TODAYYY = '))
 qty=str(qty)
 
@@ -42,47 +81,29 @@ csv_1=pd.read_csv('ScripMaster.csv')
 u=csv_1.loc[:, 'symbolCode':'symbolCode']
 v=csv_1.loc[:, 'tradingSymbol':'tradingSymbol']
 w=v.join(u)
-x=dict(zip(w.tradingSymbol,w.symbolCode))
-symbolCode=x[Stock_samco_EQ]
+dict_symboCode=dict(zip(w.tradingSymbol,w.symbolCode))
 
 
-time_m=td(seconds=300)
 
 
 a=6
 while(a>5):
-    if dt.now().strftime("%I:%M %p")=="09:59 AM":
+    time_exceed(10)
+    if exceed==10:
         b=6
         while(b>5):
-            def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
-                df_5 = yf.download(tickers=tickerr, period='2d', interval='5m')
-                df = df_5['Close']
-                delta = df_5['Close'].diff(1)
-                delta.dropna(inplace=True)
-                gain, loss = delta.copy(), delta.copy()
-                gain[gain < 0] = 0
-                loss[loss > 0] = 0
-
-                _gain = gain.ewm(com=(period - 1), min_periods=period).mean()
-                _loss = loss.abs().ewm(com=(period - 1), min_periods=period).mean()
-
-                RS = _gain / _loss
-                rsii = 100 - (100 / (1 + RS))
-
-                stochrsii = (rsii - rsii.rolling(period).min()) / (
-                            rsii.rolling(period).max() - rsii.rolling(period).min())
-                # stochrsii_K = stochrsii.ewm(span=smoothK).mean()
-                # stochrsii_D = stochrsii_K.ewm(span=smoothD).mean()
-                stochrsii_K = stochrsii.rolling(smoothK).mean()
-                stochrsii_D = stochrsii_K.rolling(smoothD).mean()
-
-                return stochrsii_K[-1], df[-1]
-
-
-            stochRSI, df_ltp=stochrsi(Stock)
-            stochRSI = float('{:.3f}'.format(100 * stochRSI))
-
-
+            for Stock2 in Stock1:
+                stochRSI, df_ltp=stochrsi(Stock2)
+                stochRSI = float('{:.3f}'.format(100 * stochRSI))
+                if stochRSI==100 or stochRSI==0:
+                    Stock = Stock2
+                    symbolCode = dict_symbolCode[dict_Stock1[Stock]]
+                    Stock_samco=dict_Stock2[Stock]
+                    print('WEoooooo WE got the Stock')
+                    break
+                time_exceed(14)
+                if exceed==14:
+                    break
 
             if stochRSI==100 or stochRSI==0:
                 if stochRSI == 100:
@@ -145,7 +166,7 @@ while(a>5):
                                                             break
                                                     break
                                                 time_exceed(14)
-                                                elif exceed==14:
+                                                if exceed==14:
                                                     PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
                                                                               body={
                                                                                   "orderType": samco.ORDER_TYPE_MARKET,
@@ -230,7 +251,7 @@ while(a>5):
                                                             break
                                                     break
                                                 time_exceed(14)
-                                                elif exceed==14:
+                                                if exceed==14:
                                                     PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
                                                                               body={
                                                                                   "orderType": samco.ORDER_TYPE_MARKET,
@@ -258,9 +279,6 @@ while(a>5):
                 time_exceed(14)
                 if exceed==14:
                     break
-            time_exceed(14)
-            if exceed==14:
-                break
     time_exceed(14)
     if exceed==14:
         break
