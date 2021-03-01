@@ -8,6 +8,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from bs4 import BeautifulSoup
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
+import requests
 
 ###     FUNCTIONS  ###
 
@@ -57,6 +58,14 @@ def live_price(Stock):
     price=float(price)
     return price
 
+
+def telegram_trade_messeges(bot_messege):
+    bot_token = '1645791181:AAHbzBLFj_1PwVCxFXByChYaIkafHNGxVSk'
+    bot_charID = '473753128'
+    send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + bot_charID + '&parse_mode=MarkdownV2&text=' + bot_messege
+    response = requests.get(send_text)
+    return response.json()
+
 ###     FUNCTIONS  ###
 
 
@@ -105,9 +114,19 @@ dict_symboCode=dict(zip(w.tradingSymbol,w.symbolCode))
 while True:
     time_exceed(endd_time)
     if exceed == endd_time:
+        samco_positions=samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
+        if samco_positions.find('companyName')!=-1:
+            telegram_trade_messeges('positions==present')
+        samco_holdings=samco.get_holding()
+        if samco_holdings.find('tradingSymbol')!=-1:
+            telegram_trade_messeges('holdings==present')
+        telegram_trade_messeges('----Trade m-c is Stopped-----')
+        telegram_trade_messeges('*******************************')
         break
     time_exceed(startt_time)
     if exceed==startt_time:
+        telegram_trade_messeges('*******************************')
+        telegram_trade_messeges('----Trade m-c is Started-----')
         while True:
             time_exceed(endd_time)
             if exceed == endd_time:
@@ -119,12 +138,13 @@ while True:
                     Stock = Stock2
                     symbolCode = dict_symbolCode[dict_Stock1[Stock]]
                     Stock_samco=dict_Stock2[Stock]
-                    print('WEoooooo WE got the Stock')
+                    print('WEoooooo WE got the Stock ---stochRSI== 100 or 0')
                     break
 
             if stochRSI==100 or stochRSI==0:
 
                 if stochRSI == 100:
+                    telegram_trade_messeges('short SELL call generated stochRSI=100 Stock= ' + Stock)
                     time_1 = dt.now()
                     while True:
                         price = live_price(Stock)
@@ -158,6 +178,7 @@ while True:
                         Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
                         dict_Order_status = eval(Order_status)
                         if dict_Order_status["orderStatus"] == "EXECUTED":
+                            telegram_trade_messeges('SELL EXECUTED')
                             print('SELL EXECUTED')
                             PO_1 = samco.place_order(body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                       "transactionType": samco.TRANSACTION_TYPE_BUY,
@@ -171,6 +192,7 @@ while True:
                                     order_number=dict_PO_1["orderNumber"])
                                 dict_Order_status_1 = eval(Order_status_1)
                                 if dict_Order_status_1["orderStatus"] == "EXECUTED":
+                                    telegram_trade_messeges('BUY EXECUTED trade done')
                                     print('BUY EXECUTED')
                                     done=1
                                     break
@@ -194,6 +216,7 @@ while True:
                                         order_number=dict_PO_1["orderNumber"])
                                     dict_Order_status_2 = eval(Order_status_2)
                                     if dict_Order_status_2["orderStatus"] == "EXECUTED":
+                                        telegram_trade_messeges('BUY EXECUTED trade done')
                                         print('BUY EXECUTED')
                                         break
                                 break
@@ -207,11 +230,13 @@ while True:
                                         order_number=dict_PO_1["orderNumber"])
                                     dict_Order_status_3 = eval(Order_status_3)
                                     if dict_Order_status_3["orderStatus"] == "EXECUTED":
+                                        telegram_trade_messeges('BUY EXECUTED trade done')
                                         print('BUY EXECUTED')
                                         break
                             break
 
                 if stochRSI == 0:
+                    telegram_trade_messeges('BUY call generated stochRSI=0 Stock' + Stock)
                     time_1 = dt.now()
                     while True:
                         price = live_price(Stock)
@@ -245,7 +270,8 @@ while True:
                         Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
                         dict_Order_status = eval(Order_status)
                         if dict_Order_status["orderStatus"] == "EXECUTED":
-                            print('SELL EXECUTED')
+                            telegram_trade_messeges('BUY EXECUTED')
+                            print('BUY EXECUTED')
                             PO_1 = samco.place_order(body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                       "transactionType": samco.TRANSACTION_TYPE_SELL,
                                       "orderType": samco.ORDER_TYPE_LIMIT, "price": str(1.003 * df_ltp),
@@ -258,7 +284,8 @@ while True:
                                     order_number=dict_PO_1["orderNumber"])
                                 dict_Order_status_1 = eval(Order_status_1)
                                 if dict_Order_status_1["orderStatus"] == "EXECUTED":
-                                    print('BUY EXECUTED')
+                                    telegram_trade_messeges('SELL EXECUTED trade done')
+                                    print('SELL EXECUTED')
                                     done=1
                                     break
                                 price = live_price(Stock)
@@ -281,7 +308,8 @@ while True:
                                         order_number=dict_PO_1["orderNumber"])
                                     dict_Order_status_2 = eval(Order_status_2)
                                     if dict_Order_status_2["orderStatus"] == "EXECUTED":
-                                        print('BUY EXECUTED')
+                                        telegram_trade_messeges('SELL EXECUTED trade done')
+                                        print('SELL EXECUTED')
                                         break
                                 break
                             if done==3:
@@ -294,7 +322,8 @@ while True:
                                         order_number=dict_PO_1["orderNumber"])
                                     dict_Order_status_3 = eval(Order_status_3)
                                     if dict_Order_status_3["orderStatus"] == "EXECUTED":
-                                        print('BUY EXECUTED')
+                                        telegram_trade_messeges('SELL EXECUTED trade done')
+                                        print('SELL EXECUTED')
                                         break
                             break
 
