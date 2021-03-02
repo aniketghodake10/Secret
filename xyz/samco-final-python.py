@@ -18,6 +18,7 @@ software_names = [SoftwareName.CHROME.value, SoftwareName.FIREFOX.value, Softwar
 operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
 user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
 
+check=0
 exceed=0
 done=0
 placeo=0
@@ -145,38 +146,49 @@ while True:
         telegram_trade_messeges('----Trade m-c is Started-----')
         while True:
             time_exceed(endd_time)
+            if exceed == endd_time or check==1:
+                break
+            for Stock2 in Stock1:
+                check=0
+                stochRSI, df_ltp, df_last_5_values = stochrsi(Stock2)
+                stochRSI = float('{:.3f}'.format(100 * stochRSI))
+                if stochRSI!=100 and stochRSI!=0:
+                    check=1
+        while True:
+            time_exceed(endd_time)
             if exceed == endd_time:
                 break
             for Stock2 in Stock1:
                 stochRSI, df_ltp, df_last_5_values = stochrsi(Stock2)
                 stochRSI = float('{:.3f}'.format(100 * stochRSI))
-                if stochRSI==100 or stochRSI==0:
+                if stochRSI == 100 or stochRSI == 0:
                     Stock = Stock2
                     symbolCode = dict_symbolCode[dict_Stock1[Stock]]
-                    Stock_samco=dict_Stock2[Stock]
+                    Stock_samco = dict_Stock2[Stock]
                     print(df_last_5_values)
                     print('WEoooooo WE got the Stock ---', Stock, '----', 'stochRSI===', stochRSI)
-                    telegram_trade_messeges('WEoooooo WE got the Stock ---' + Stock + '----stochRSI===' + str(stochRSI))
+                    telegram_trade_messeges(
+                        'WEoooooo WE got the Stock ---' + Stock + '----stochRSI===' + str(stochRSI))
                     break
 
-            if stochRSI==100 or stochRSI==0:
+            if stochRSI == 100 or stochRSI == 0:
 
                 if stochRSI == 100:
                     telegram_trade_messeges('short SELL call generated stochRSI=100 Stock= ' + Stock)
                     time_1 = dt.now()
                     while True:
                         price = live_price(Stock)
-                        if aa==1:
-                            price_1=price
+                        if aa == 1:
+                            price_1 = price
                             print('price_1===', price_1)
                             telegram_trade_messeges('price_1===' + str(price_1))
-                            aa=2
+                            aa = 2
                         if price > 1.001 * price_1:
                             time_2 = dt.now()
                             while True:
                                 price = live_price(Stock)
                                 if price <= price_1:
-                                    placeo=1
+                                    placeo = 1
                                     break
                                 time_3 = dt.now()
                                 time_diff_2 = time_3 - time_2
@@ -188,8 +200,8 @@ while True:
                         if (time_diff_1 > time_m) == True:
                             break
 
-                    if placeo==1:
-                        placeo=0
+                    if placeo == 1:
+                        placeo = 0
                         PO = samco.place_order(
                             body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                   "transactionType": samco.TRANSACTION_TYPE_SELL,
@@ -205,13 +217,16 @@ while True:
                             if dict_Order_status["orderStatus"] == "EXECUTED":
                                 telegram_trade_messeges('SELL EXECUTED')
                                 print('SELL EXECUTED')
-                                samco_positions_1 = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
-                                samco_positions_find_1=samco_positions.find('averageBuyPrice')
-                                telegram_trade_messeges(samco_positions_1[samco_positions_find_1-1:samco_positions_find_1+70])
+                                samco_positions_1 = samco.get_positions_data(
+                                    position_type=samco.POSITION_TYPE_DAY)
+                                samco_positions_find_1 = samco_positions.find('averageBuyPrice')
+                                telegram_trade_messeges(samco_positions_1[
+                                                        samco_positions_find_1 - 1:samco_positions_find_1 + 70])
                                 PO_1 = samco.place_order(
                                     body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                           "transactionType": samco.TRANSACTION_TYPE_BUY,
-                                          "orderType": samco.ORDER_TYPE_LIMIT, "price": str(0.05 * math.ceil(19.94 * price_1)),
+                                          "orderType": samco.ORDER_TYPE_LIMIT,
+                                          "price": str(0.05 * math.ceil(19.94 * price_1)),
                                           "quantity": qty,
                                           "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
                                           "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
@@ -227,7 +242,8 @@ while True:
                                             position_type=samco.POSITION_TYPE_DAY)
                                         samco_positions_find_1 = samco_positions.find('averageBuyPrice')
                                         telegram_trade_messeges(
-                                            samco_positions_1[samco_positions_find_1 - 1:samco_positions_find_1 + 70])
+                                            samco_positions_1[
+                                            samco_positions_find_1 - 1:samco_positions_find_1 + 70])
                                         done = 1
                                         break
                                     price = live_price(Stock)
@@ -239,10 +255,10 @@ while True:
                                         done = 3
                                         break
                                 if done == 1:
-                                    done=0
+                                    done = 0
                                     break
                                 if done == 2:
-                                    done=0
+                                    done = 0
                                     PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"], body={
                                         "orderType": samco.ORDER_TYPE_MARKET,
                                         "price": ""})
@@ -261,7 +277,7 @@ while True:
                                             break
                                     break
                                 if done == 3:
-                                    done=0
+                                    done = 0
                                     PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
                                                               body={
                                                                   "orderType": samco.ORDER_TYPE_MARKET,
@@ -280,7 +296,7 @@ while True:
                                                                     samco_positions_find_1 - 1:samco_positions_find_1 + 70])
                                             break
                                 break
-                    aa=1
+                    aa = 1
 
                 if stochRSI == 0:
                     telegram_trade_messeges('short BUY call generated stochRSI=100 Stock= ' + Stock)
@@ -326,14 +342,17 @@ while True:
                             if dict_Order_status["orderStatus"] == "EXECUTED":
                                 telegram_trade_messeges('BUY EXECUTED')
                                 print('BUY EXECUTED')
-                                samco_positions_1 = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
+                                samco_positions_1 = samco.get_positions_data(
+                                    position_type=samco.POSITION_TYPE_DAY)
                                 samco_positions_find_1 = samco_positions.find('averageBuyPrice')
                                 telegram_trade_messeges(
-                                    samco_positions_1[samco_positions_find_1 - 1:samco_positions_find_1 + 70])
+                                    samco_positions_1[
+                                    samco_positions_find_1 - 1:samco_positions_find_1 + 70])
                                 PO_1 = samco.place_order(
                                     body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                           "transactionType": samco.TRANSACTION_TYPE_SELL,
-                                          "orderType": samco.ORDER_TYPE_LIMIT, "price": str(0.05 * math.ceil(20.06 * price_1)),
+                                          "orderType": samco.ORDER_TYPE_LIMIT,
+                                          "price": str(0.05 * math.ceil(20.06 * price_1)),
                                           "quantity": qty,
                                           "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
                                           "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
@@ -349,7 +368,8 @@ while True:
                                             position_type=samco.POSITION_TYPE_DAY)
                                         samco_positions_find_1 = samco_positions.find('averageBuyPrice')
                                         telegram_trade_messeges(
-                                            samco_positions_1[samco_positions_find_1 - 1:samco_positions_find_1 + 70])
+                                            samco_positions_1[
+                                            samco_positions_find_1 - 1:samco_positions_find_1 + 70])
                                         done = 1
                                         break
                                     price = live_price(Stock)
@@ -402,8 +422,7 @@ while True:
                                                                     samco_positions_find_1 - 1:samco_positions_find_1 + 70])
                                             break
                                 break
-                    aa=1
-
+                    aa = 1
 
 print('program ended')
 samco.logout()
