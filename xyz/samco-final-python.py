@@ -9,8 +9,14 @@ from datetime import timedelta as td
 from bs4 import BeautifulSoup
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 import requests
+from random_user_agent.user_agent import UserAgent
+from random_user_agent.params import SoftwareName, OperatingSystem
 
 ###     FUNCTIONS  ###
+
+software_names = [SoftwareName.CHROME.value, SoftwareName.FIREFOX.value, SoftwareName.SAFARI.value]
+operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
+user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
 
 exceed=0
 done=0
@@ -52,9 +58,11 @@ def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
 
 def live_price(Stock):
     stockcode = Stock.lower()
-
+    global user_agent_rotator
     stock_url = 'https://in.finance.yahoo.com/quote/' + stockcode
-    response = requests.get(stock_url)
+    user_agent = user_agent_rotator.get_random_user_agent()
+    headers = {'User-Agent': user_agent}
+    response = requests.get(stock_url, headers)
     soup = BeautifulSoup(response.text, 'lxml')
     price = soup.find_all('div', {'class': 'My(6px) Pos(r) smartphone_Mt(6px)'})[0].find('span').text
     price=float(price)
