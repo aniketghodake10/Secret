@@ -120,7 +120,7 @@ csv_1=pd.read_csv('ScripMaster.csv')
 u=csv_1.loc[:, 'symbolCode':'symbolCode']
 v=csv_1.loc[:, 'tradingSymbol':'tradingSymbol']
 w=v.join(u)
-dict_symboCode=dict(zip(w.tradingSymbol,w.symbolCode))
+dict_symbolCode=dict(zip(w.tradingSymbol,w.symbolCode))
 
 
 
