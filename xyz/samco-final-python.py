@@ -67,6 +67,8 @@ def live_price(Stock):
     response = requests.get(stock_url, headers)
     soup = BeautifulSoup(response.text, 'lxml')
     price = soup.find_all('div', {'class': 'My(6px) Pos(r) smartphone_Mt(6px)'})[0].find('span').text
+    price = price.split(',')
+    price = ''.join(price)
     price=float(price)
     return price
 
