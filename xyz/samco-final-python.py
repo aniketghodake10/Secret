@@ -131,18 +131,18 @@ while True:
     if exceed == endd_time:
         samco_positions = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
         if samco_positions.find('companyName') != -1:
-            telegram_trade_messeges('positions_True')
+            telegram_trade_messeges('positions are there CHECK app')
         samco_holdings = samco.get_holding()
         if samco_holdings.find('tradingSymbol') != -1:
-            telegram_trade_messeges('holdings_True')
-        telegram_trade_messeges('THE_END')
-        telegram_trade_messeges('********')
+            telegram_trade_messeges('holdings are there CHECK app')
+        telegram_trade_messeges('THE END')
+        telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
         break
     time_exceed(startt_time)
     if exceed == startt_time:
         print('Trade m-c is Started---')
-        telegram_trade_messeges('********')
-        telegram_trade_messeges('THE_START')
+        telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
+        telegram_trade_messeges('THE START')
         while True:
             time_exceed(endd_time)
             if exceed == endd_time:
@@ -156,7 +156,7 @@ while True:
                     Stock_samco = dict_Stock2[Stock]
                     print(df_last_5_values)
                     print('\nWEoooooo WE got the Stock ---', Stock, '----', 'stochRSI===', stochRSI)
-                    telegram_trade_messeges(Stock + '=' + str(stochRSI))
+                    telegram_trade_messeges(Stock + ' ' + str(stochRSI))
                     break
 
             if stochRSI == 100 or stochRSI == 0:
@@ -168,7 +168,7 @@ while True:
                         if aa == 1:
                             price_1 = price
                             print('\nprice_1===', price_1)
-                            telegram_trade_messeges('price_1=' + str(price_1))
+                            telegram_trade_messeges('price 1    ' + str(price_1))
                             aa = 2
                         if price > 1.001 * price_1:
                             time_2 = dt.now()
@@ -181,14 +181,14 @@ while True:
                                 time_diff_2 = time_3 - time_2
                                 if (time_diff_2 >= time_m) == True:
                                     print('5 min done so no trade')
-                                    telegram_trade_messeges('trade_canc')
+                                    telegram_trade_messeges('trade cancelled as five minutes are up')
                                     break
                             break
                         time_4 = dt.now()
                         time_diff_1 = time_4 - time_1
                         if (time_diff_1 >= time_m) == True:
                             print('5 min done so no trade')
-                            telegram_trade_messeges('trade_canc')
+                            telegram_trade_messeges('trade cancelled as five minutes are up')
                             break
 
                     if placeo == 1:
@@ -211,12 +211,7 @@ while True:
                                 samco_positions_1 = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
                                 samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
                                 samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                telegram_trade_messeges('avBUY_and_avSELL')
-                                telegram_trade_messeges(
-                                    samco_positions_1[samco_positions_find_1 + 17:samco_positions_find_1 + 27])
-                                telegram_trade_messeges('and')
-                                telegram_trade_messeges(
-                                    samco_positions_1[samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                print('avgBUYprice===', samco_positions_1[samco_positions_find_1 + 17:samco_positions_find_1 + 27], 'avgSELLprice===', samco_positions_1[samco_positions_find_2 + 17:samco_positions_find_2 + 27])
                                 PO_1 = samco.place_order(
                                     body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                           "transactionType": samco.TRANSACTION_TYPE_BUY,
@@ -237,12 +232,10 @@ while True:
                                             position_type=samco.POSITION_TYPE_DAY)
                                         samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
                                         samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                        telegram_trade_messeges('avBUY_and_avSELL')
-                                        telegram_trade_messeges(
-                                            samco_positions_1[samco_positions_find_1 + 17:samco_positions_find_1 + 27])
-                                        telegram_trade_messeges('and')
-                                        telegram_trade_messeges(
-                                            samco_positions_1[samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                        print('avgBUYprice===', samco_positions_1[
+                                                                samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                              'avgSELLprice===', samco_positions_1[
+                                                                 samco_positions_find_2 + 17:samco_positions_find_2 + 27])
                                         done = 1
                                         break
                                     price = live_price(Stock)
@@ -272,12 +265,10 @@ while True:
                                                 position_type=samco.POSITION_TYPE_DAY)
                                             samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
                                             samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                            telegram_trade_messeges('avBUY_and_avSELL')
-                                            telegram_trade_messeges(samco_positions_1[
-                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27])
-                                            telegram_trade_messeges('and')
-                                            telegram_trade_messeges(samco_positions_1[
-                                                                    samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                            print('avgBUYprice===', samco_positions_1[
+                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                  'avgSELLprice===', samco_positions_1[
+                                                                     samco_positions_find_2 + 17:samco_positions_find_2 + 27])
                                             break
                                     break
                                 if done == 3:
@@ -297,12 +288,10 @@ while True:
                                                 position_type=samco.POSITION_TYPE_DAY)
                                             samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
                                             samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                            telegram_trade_messeges('avBUY_and_avSELL')
-                                            telegram_trade_messeges(samco_positions_1[
-                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27])
-                                            telegram_trade_messeges('and')
-                                            telegram_trade_messeges(samco_positions_1[
-                                                                    samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                            print('avgBUYprice===', samco_positions_1[
+                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                  'avgSELLprice===', samco_positions_1[
+                                                                     samco_positions_find_2 + 17:samco_positions_find_2 + 27])
                                             break
                                 break
                     aa = 1
@@ -314,7 +303,7 @@ while True:
                         if aa == 1:
                             price_1 = price
                             print('price_1===', price_1)
-                            telegram_trade_messeges('price_1=' + str(price_1))
+                            telegram_trade_messeges('price 1 ' + str(price_1))
                             aa = 2
                         if price < 0.999 * price_1:
                             time_2 = dt.now()
@@ -327,14 +316,14 @@ while True:
                                 time_diff_2 = time_3 - time_2
                                 if (time_diff_2 >= time_m) == True:
                                     print('5 min done so no trade')
-                                    telegram_trade_messeges('trade_canc')
+                                    telegram_trade_messeges('trade cancelled as five minutes are up')
                                     break
                             break
                         time_4 = dt.now()
                         time_diff_1 = time_4 - time_1
                         if (time_diff_1 >= time_m) == True:
                             print('5 min done so no trade')
-                            telegram_trade_messeges('trade_canc')
+                            telegram_trade_messeges('trade cancelled as five minutes are up')
                             break
 
                     if placeo == 1:
@@ -357,12 +346,10 @@ while True:
                                 samco_positions_1 = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
                                 samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
                                 samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                telegram_trade_messeges('avBUY_and_avSELL')
-                                telegram_trade_messeges(
-                                    samco_positions_1[samco_positions_find_1 + 17:samco_positions_find_1 + 27])
-                                telegram_trade_messeges('and')
-                                telegram_trade_messeges(
-                                    samco_positions_1[samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                print('avgBUYprice===', samco_positions_1[
+                                                        samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                      'avgSELLprice===', samco_positions_1[
+                                                         samco_positions_find_2 + 17:samco_positions_find_2 + 27])
                                 PO_1 = samco.place_order(
                                     body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
                                           "transactionType": samco.TRANSACTION_TYPE_SELL,
@@ -383,12 +370,10 @@ while True:
                                             position_type=samco.POSITION_TYPE_DAY)
                                         samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
                                         samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                        telegram_trade_messeges('avBUY_and_avSELL')
-                                        telegram_trade_messeges(
-                                            samco_positions_1[samco_positions_find_1 + 17:samco_positions_find_1 + 27])
-                                        telegram_trade_messeges('and')
-                                        telegram_trade_messeges(
-                                            samco_positions_1[samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                        print('avgBUYprice===', samco_positions_1[
+                                                                samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                              'avgSELLprice===', samco_positions_1[
+                                                                 samco_positions_find_2 + 17:samco_positions_find_2 + 27])
                                         done = 1
                                         break
                                     price = live_price(Stock)
@@ -418,12 +403,10 @@ while True:
                                                 position_type=samco.POSITION_TYPE_DAY)
                                             samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
                                             samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                            telegram_trade_messeges('avBUY_and_avSELL')
-                                            telegram_trade_messeges(samco_positions_1[
-                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27])
-                                            telegram_trade_messeges('and')
-                                            telegram_trade_messeges(samco_positions_1[
-                                                                    samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                            print('avgBUYprice===', samco_positions_1[
+                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                  'avgSELLprice===', samco_positions_1[
+                                                                     samco_positions_find_2 + 17:samco_positions_find_2 + 27])
                                             break
                                     break
                                 if done == 3:
@@ -443,12 +426,10 @@ while True:
                                                 position_type=samco.POSITION_TYPE_DAY)
                                             samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
                                             samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                            telegram_trade_messeges('avBUY_and_avSELL')
-                                            telegram_trade_messeges(samco_positions_1[
-                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27])
-                                            telegram_trade_messeges('and')
-                                            telegram_trade_messeges(samco_positions_1[
-                                                                    samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                            print('avgBUYprice===', samco_positions_1[
+                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                  'avgSELLprice===', samco_positions_1[
+                                                                     samco_positions_find_2 + 17:samco_positions_find_2 + 27])
                                             break
                                 break
                     aa = 1
