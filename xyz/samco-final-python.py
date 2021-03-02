@@ -33,7 +33,7 @@ def time_exceed(time_in_hours_24hour_format):
 
 def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
     df_5 = yf.download(tickers=tickerr, period='2d', interval='5m')
-    df_5=df_5[:-1]
+    df_5=df_5[:-2]
     df = df_5['Close']
     delta = df_5['Close'].diff(1)
     delta.dropna(inplace=True)
