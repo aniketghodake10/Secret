@@ -25,9 +25,9 @@ aa=1
 time_m=td(seconds=300)
 
 def time_exceed(time_in_hours_24hour_format):
-    exceed=0
     time2=dt.now()
     if time2.hour>=time_in_hours_24hour_format:
+        global exceed
         exceed=time_in_hours_24hour_format
 
 
