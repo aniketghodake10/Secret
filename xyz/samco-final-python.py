@@ -34,10 +34,6 @@ def time_exceed(time_in_hours_24hour_format):
 
 
 def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
-    while True:
-        cond = dt.now()
-        if cond.minute % 5 == 0 and cond.second == 0 and cond.microsecond < 999999:
-            break
     df_5 = yf.download(tickers=tickerr, period='2d', interval='5m')
     df = df_5['Close']
     delta = df_5['Close'].diff(1)
@@ -147,6 +143,10 @@ while True:
             time_exceed(endd_time)
             if exceed == endd_time:
                 break
+            while True:
+                cond = dt.now()
+                if cond.minute % 5 == 0 and cond.second == 0 and cond.microsecond < 999999:
+                    break
             for Stock2 in Stock1:
                 stochRSI, df_ltp, df_last_5_values = stochrsi(Stock2)
                 stochRSI = float('{:.3f}'.format(100 * stochRSI))
