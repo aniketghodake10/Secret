@@ -196,6 +196,15 @@ class Scrip(Thread):
                             if price > hundred_rejection * price_1:
                                 time_2 = dt.now()
                                 while True:
+                                    while True:
+                                        if a_thread == 1:
+                                            break
+                                        time_3 = dt.now()
+                                        time_diff_2 = time_3 - time_2
+                                        if (time_diff_2 >= time_m) == True:
+                                            print('2 min done so no trade')
+                                            telegram_trade_messeges('trade cancelled as two minutes are up')
+                                            break
                                     price = live_price(self.Stock)
                                     if price <= price_1:
                                         a_thread = 0
@@ -387,9 +396,6 @@ while True:
 while True:
     time_exceed(endd_time)
     if exceed == endd_time:
-        samco_positions = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
-        if samco_positions.find('companyName') != -1:
-            telegram_trade_messeges('positions are there CHECK app')
         samco_holdings = samco.get_holding()
         if samco_holdings.find('tradingSymbol') != -1:
             telegram_trade_messeges('holdings are there CHECK app')
