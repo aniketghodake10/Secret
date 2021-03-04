@@ -11,6 +11,7 @@ from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 import requests
 from random_user_agent.user_agent import UserAgent
 from random_user_agent.params import SoftwareName, OperatingSystem
+from threading import *
 
 ###     FUNCTIONS  ###
 
@@ -18,12 +19,13 @@ software_names = [SoftwareName.CHROME.value, SoftwareName.FIREFOX.value, Softwar
 operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
 user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
 
+a_thread=1
 check = 0
 exceed = 0
 done = 0
 placeo = 0
 aa = 1
-time_m = td(seconds=300)
+time_m = td(seconds=200)
 
 
 def time_exceed(time_in_hours_24hour_format):
@@ -34,7 +36,7 @@ def time_exceed(time_in_hours_24hour_format):
 
 
 def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
-    df_5 = yf.download(tickers=tickerr, period='2d', interval='5m')
+    df_5 = yf.download(tickers=tickerr, period='2h', interval='5m')
     df = df_5['Close']
     delta = df_5['Close'].diff(1)
     delta.dropna(inplace=True)
@@ -122,143 +124,120 @@ v = csv_1.loc[:, 'tradingSymbol':'tradingSymbol']
 w = v.join(u)
 dict_symbolCode = dict(zip(w.tradingSymbol, w.symbolCode))
 
-while True:
-    time_exceed(endd_time)
-    if exceed == endd_time:
-        samco_positions = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
-        if samco_positions.find('companyName') != -1:
-            telegram_trade_messeges('positions are there CHECK app')
-        samco_holdings = samco.get_holding()
-        if samco_holdings.find('tradingSymbol') != -1:
-            telegram_trade_messeges('holdings are there CHECK app')
-        telegram_trade_messeges('THE END')
-        telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
-        break
-    time_exceed(startt_time)
-    if exceed == startt_time:
-        print('Trade m-c is Started---')
-        telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
-        telegram_trade_messeges('THE START')
+
+class Scrip(Thread):
+    def __init__(self, Stock):
+        global a_thread, check, exceed, done, placeo, aa, time_m, software_names, operating_systems, user_agent_rotator, samco, Stock_samco_1, Stock1, Stock_samco_EQ, dict_Stock1, dict_Stock2, qty, startt_time, endd_time, dict_symbolCode
+        Thread.__init__(self)
+        self.Stock = Stock
         while True:
             time_exceed(endd_time)
             if exceed == endd_time:
+                samco_positions = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
+                if samco_positions.find('companyName') != -1:
+                    telegram_trade_messeges('positions are there CHECK app')
+                samco_holdings = samco.get_holding()
+                if samco_holdings.find('tradingSymbol') != -1:
+                    telegram_trade_messeges('holdings are there CHECK app')
+                telegram_trade_messeges('THE END')
+                telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
                 break
-            while True:
-                cond = dt.now()
-                if cond.minute % 5 == 0 and cond.second == 0 and cond.microsecond < 999999:
-                    break
-            for Stock2 in Stock1:
-                stochRSI, df_ltp, df_last_5_values = stochrsi(Stock2)
-                stochRSI = float('{:.3f}'.format(100 * stochRSI))
-                if stochRSI == 100 or stochRSI == 0:
-                    Stock = Stock2
+            time_exceed(startt_time)
+            if exceed == startt_time:
+                print('Trade m-c is Started---')
+                telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
+                telegram_trade_messeges('THE START')
+                while True:
+                    time_exceed(endd_time)
+                    if exceed == endd_time:
+                        break
+                    telegram_trade_messeges('searching for stocks NEW Ireration')
+                    while True:
+                        if a_thread==1:
+                            break
+                    while True:
+                        cond = dt.now()
+                        if cond.minute % 5 == 0 and cond.second == 0 and cond.microsecond < 999999:
+                            break
+                    print('searching for stocks NEW Ireration')
+                    stochRSI, df_ltp, df_last_5_values = stochrsi(Stock)
+                    stochRSI = float('{:.3f}'.format(100 * stochRSI))
                     symbolCode = dict_symbolCode[dict_Stock1[Stock]]
                     Stock_samco = dict_Stock2[Stock]
-                    print(df_last_5_values)
-                    print('\nWEoooooo WE got the Stock ---', Stock, '----', 'stochRSI===', stochRSI)
-                    telegram_trade_messeges(Stock + ' ' + str(stochRSI))
-                    break
 
-            if stochRSI == 100 or stochRSI == 0:
-
-                if stochRSI == 100:
-                    time_1 = dt.now()
-                    while True:
-                        price = live_price(Stock)
-                        if aa == 1:
-                            price_1 = price
-                            print('\nprice_1===', price_1)
-                            telegram_trade_messeges('price 1    ' + str(price_1))
-                            aa = 2
-                        if price > 1.001 * price_1:
-                            time_2 = dt.now()
-                            while True:
-                                price = live_price(Stock)
-                                if price <= price_1:
-                                    placeo = 1
-                                    break
-                                time_3 = dt.now()
-                                time_diff_2 = time_3 - time_2
-                                if (time_diff_2 >= time_m) == True:
-                                    print('5 min done so no trade')
-                                    telegram_trade_messeges('trade cancelled as five minutes are up')
-                                    break
-                            break
-                        time_4 = dt.now()
-                        time_diff_1 = time_4 - time_1
-                        if (time_diff_1 >= time_m) == True:
-                            print('5 min done so no trade')
-                            telegram_trade_messeges('trade cancelled as five minutes are up')
-                            break
-
-                    if placeo == 1:
-                        placeo = 0
-                        PO = samco.place_order(
-                            body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
-                                  "transactionType": samco.TRANSACTION_TYPE_SELL,
-                                  "orderType": samco.ORDER_TYPE_MARKET, "price": "",
-                                  "quantity": qty, "disclosedQuantity": "",
-                                  "orderValidity": samco.VALIDITY_DAY,
-                                  "productType": samco.PRODUCT_MIS,
-                                  "afterMarketOrderFlag": "NO"})
-                        dict_PO = eval(PO)
+                    if stochRSI == 100:
+                        time_1 = dt.now()
                         while True:
-                            Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
-                            dict_Order_status = eval(Order_status)
-                            if dict_Order_status["orderStatus"] == "EXECUTED":
-                                telegram_trade_messeges('SELL EXECUTED')
-                                print('SELL EXECUTED')
-                                samco_positions_1 = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
-                                samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
-                                samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                print('avgBUYprice===', samco_positions_1[samco_positions_find_1 + 17:samco_positions_find_1 + 27], 'avgSELLprice===', samco_positions_1[samco_positions_find_2 + 17:samco_positions_find_2 + 27])
-                                PO_1 = samco.place_order(
-                                    body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
-                                          "transactionType": samco.TRANSACTION_TYPE_BUY,
-                                          "orderType": samco.ORDER_TYPE_LIMIT,
-                                          "price": str(0.05 * math.ceil(19.94 * price_1)),
-                                          "quantity": qty,
-                                          "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
-                                          "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
-                                dict_PO_1 = eval(PO_1)
+                            price = live_price(Stock)
+                            if aa == 1:
+                                price_1 = price
+                                print(df_last_5_values)
+                                print('\nWEoooooo WE got the Stock ---', Stock, '----', 'stochRSI===', stochRSI)
+                                print('\nprice_1===', price_1)
+                                telegram_trade_messeges(
+                                    Stock.replace('.NS', ' ') + 'price 1  is  ' + str(price_1).replace('.', ' '))
+                                aa = 2
+                            if price > 1.001 * price_1:
+                                time_2 = dt.now()
                                 while True:
-                                    Order_status_1 = samco.get_order_status(
-                                        order_number=dict_PO_1["orderNumber"])
-                                    dict_Order_status_1 = eval(Order_status_1)
-                                    if dict_Order_status_1["orderStatus"] == "EXECUTED":
-                                        telegram_trade_messeges('BUY EXECUTED trade done')
-                                        print('BUY EXECUTED')
-                                        samco_positions_1 = samco.get_positions_data(
-                                            position_type=samco.POSITION_TYPE_DAY)
-                                        samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
-                                        samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                        print('avgBUYprice===', samco_positions_1[
-                                                                samco_positions_find_1 + 17:samco_positions_find_1 + 27],
-                                              'avgSELLprice===', samco_positions_1[
-                                                                 samco_positions_find_2 + 17:samco_positions_find_2 + 27])
-                                        done = 1
-                                        break
                                     price = live_price(Stock)
-                                    if price > 1.0035 * price_1:
-                                        done = 2
+                                    if price <= price_1:
+                                        a_thread = 0
+                                        placeo = 1
                                         break
-                                    time_exceed(endd_time)
-                                    if exceed == endd_time:
-                                        done = 3
+                                    time_3 = dt.now()
+                                    time_diff_2 = time_3 - time_2
+                                    if (time_diff_2 >= time_m) == True:
+                                        print('2 min done so no trade')
+                                        telegram_trade_messeges('trade cancelled as two minutes are up')
                                         break
-                                if done == 1:
-                                    done = 0
-                                    break
-                                if done == 2:
-                                    done = 0
-                                    PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"], body={
-                                        "orderType": samco.ORDER_TYPE_MARKET,
-                                        "price": ""})
+                                break
+                            time_4 = dt.now()
+                            time_diff_1 = time_4 - time_1
+                            if (time_diff_1 >= time_m) == True:
+                                print('2 min done so no trade')
+                                telegram_trade_messeges('trade cancelled as two minutes are up')
+                                break
+
+                        if placeo == 1:
+                            placeo = 0
+                            PO = samco.place_order(
+                                body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
+                                      "transactionType": samco.TRANSACTION_TYPE_SELL,
+                                      "orderType": samco.ORDER_TYPE_MARKET, "price": "",
+                                      "quantity": qty, "disclosedQuantity": "",
+                                      "orderValidity": samco.VALIDITY_DAY,
+                                      "productType": samco.PRODUCT_MIS,
+                                      "afterMarketOrderFlag": "NO"})
+                            dict_PO = eval(PO)
+                            while True:
+                                Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
+                                dict_Order_status = eval(Order_status)
+                                if dict_Order_status["orderStatus"] == "EXECUTED":
+                                    telegram_trade_messeges('SELL EXECUTED')
+                                    print('SELL EXECUTED')
+                                    samco_positions_1 = samco.get_positions_data(
+                                        position_type=samco.POSITION_TYPE_DAY)
+                                    samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
+                                    samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
+                                    print('avgBUYprice===', samco_positions_1[
+                                                            samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                          'avgSELLprice===', samco_positions_1[
+                                                             samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                    PO_1 = samco.place_order(
+                                        body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
+                                              "transactionType": samco.TRANSACTION_TYPE_BUY,
+                                              "orderType": samco.ORDER_TYPE_LIMIT,
+                                              "price": str(0.05 * math.ceil(19.94 * price_1)),
+                                              "quantity": qty,
+                                              "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
+                                              "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
+                                    dict_PO_1 = eval(PO_1)
                                     while True:
-                                        Order_status_2 = samco.get_order_status(
+                                        Order_status_1 = samco.get_order_status(
                                             order_number=dict_PO_1["orderNumber"])
-                                        dict_Order_status_2 = eval(Order_status_2)
-                                        if dict_Order_status_2["orderStatus"] == "EXECUTED":
+                                        dict_Order_status_1 = eval(Order_status_1)
+                                        if dict_Order_status_1["orderStatus"] == "EXECUTED":
                                             telegram_trade_messeges('BUY EXECUTED trade done')
                                             print('BUY EXECUTED')
                                             samco_positions_1 = samco.get_positions_data(
@@ -269,170 +248,223 @@ while True:
                                                                     samco_positions_find_1 + 17:samco_positions_find_1 + 27],
                                                   'avgSELLprice===', samco_positions_1[
                                                                      samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                            done = 1
                                             break
-                                    break
-                                if done == 3:
-                                    done = 0
-                                    PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
-                                                              body={
-                                                                  "orderType": samco.ORDER_TYPE_MARKET,
-                                                                  "price": ""})
-                                    while True:
-                                        Order_status_3 = samco.get_order_status(
-                                            order_number=dict_PO_1["orderNumber"])
-                                        dict_Order_status_3 = eval(Order_status_3)
-                                        if dict_Order_status_3["orderStatus"] == "EXECUTED":
-                                            telegram_trade_messeges('BUY EXECUTED trade done')
-                                            print('BUY EXECUTED')
-                                            samco_positions_1 = samco.get_positions_data(
-                                                position_type=samco.POSITION_TYPE_DAY)
-                                            samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
-                                            samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                            print('avgBUYprice===', samco_positions_1[
-                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27],
-                                                  'avgSELLprice===', samco_positions_1[
-                                                                     samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                        price = live_price(Stock)
+                                        if price > 1.0035 * price_1:
+                                            done = 2
                                             break
-                                break
-                    aa = 1
-
-                if stochRSI == 0:
-                    time_1 = dt.now()
-                    while True:
-                        price = live_price(Stock)
-                        if aa == 1:
-                            price_1 = price
-                            print('price_1===', price_1)
-                            telegram_trade_messeges('price 1 ' + str(price_1))
-                            aa = 2
-                        if price < 0.999 * price_1:
-                            time_2 = dt.now()
-                            while True:
-                                price = live_price(Stock)
-                                if price >= price_1:
-                                    placeo = 1
+                                        time_exceed(endd_time)
+                                        if exceed == endd_time:
+                                            done = 3
+                                            break
+                                    if done == 1:
+                                        done = 0
+                                        break
+                                    if done == 2:
+                                        done = 0
+                                        PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"], body={
+                                            "orderType": samco.ORDER_TYPE_MARKET,
+                                            "price": ""})
+                                        while True:
+                                            Order_status_2 = samco.get_order_status(
+                                                order_number=dict_PO_1["orderNumber"])
+                                            dict_Order_status_2 = eval(Order_status_2)
+                                            if dict_Order_status_2["orderStatus"] == "EXECUTED":
+                                                telegram_trade_messeges('BUY EXECUTED trade done')
+                                                print('BUY EXECUTED')
+                                                samco_positions_1 = samco.get_positions_data(
+                                                    position_type=samco.POSITION_TYPE_DAY)
+                                                samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
+                                                samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
+                                                print('avgBUYprice===', samco_positions_1[
+                                                                        samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                      'avgSELLprice===', samco_positions_1[
+                                                                         samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                                break
+                                        break
+                                    if done == 3:
+                                        done = 0
+                                        PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
+                                                                  body={
+                                                                      "orderType": samco.ORDER_TYPE_MARKET,
+                                                                      "price": ""})
+                                        while True:
+                                            Order_status_3 = samco.get_order_status(
+                                                order_number=dict_PO_1["orderNumber"])
+                                            dict_Order_status_3 = eval(Order_status_3)
+                                            if dict_Order_status_3["orderStatus"] == "EXECUTED":
+                                                telegram_trade_messeges('BUY EXECUTED trade done')
+                                                print('BUY EXECUTED')
+                                                samco_positions_1 = samco.get_positions_data(
+                                                    position_type=samco.POSITION_TYPE_DAY)
+                                                samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
+                                                samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
+                                                print('avgBUYprice===', samco_positions_1[
+                                                                        samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                      'avgSELLprice===', samco_positions_1[
+                                                                         samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                                break
                                     break
-                                time_3 = dt.now()
-                                time_diff_2 = time_3 - time_2
-                                if (time_diff_2 >= time_m) == True:
-                                    print('5 min done so no trade')
-                                    telegram_trade_messeges('trade cancelled as five minutes are up')
-                                    break
-                            break
-                        time_4 = dt.now()
-                        time_diff_1 = time_4 - time_1
-                        if (time_diff_1 >= time_m) == True:
-                            print('5 min done so no trade')
-                            telegram_trade_messeges('trade cancelled as five minutes are up')
-                            break
+                        aa = 1
+                        a_thread = 1
 
-                    if placeo == 1:
-                        placeo = 0
-                        PO = samco.place_order(
-                            body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
-                                  "transactionType": samco.TRANSACTION_TYPE_BUY,
-                                  "orderType": samco.ORDER_TYPE_MARKET, "price": "",
-                                  "quantity": qty, "disclosedQuantity": "",
-                                  "orderValidity": samco.VALIDITY_DAY,
-                                  "productType": samco.PRODUCT_MIS,
-                                  "afterMarketOrderFlag": "NO"})
-                        dict_PO = eval(PO)
+                    if stochRSI == 0:
+                        time_1 = dt.now()
                         while True:
-                            Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
-                            dict_Order_status = eval(Order_status)
-                            if dict_Order_status["orderStatus"] == "EXECUTED":
-                                telegram_trade_messeges('BUY EXECUTED')
-                                print('BUY EXECUTED')
-                                samco_positions_1 = samco.get_positions_data(position_type=samco.POSITION_TYPE_DAY)
-                                samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
-                                samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                print('avgBUYprice===', samco_positions_1[
-                                                        samco_positions_find_1 + 17:samco_positions_find_1 + 27],
-                                      'avgSELLprice===', samco_positions_1[
-                                                         samco_positions_find_2 + 17:samco_positions_find_2 + 27])
-                                PO_1 = samco.place_order(
-                                    body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
-                                          "transactionType": samco.TRANSACTION_TYPE_SELL,
-                                          "orderType": samco.ORDER_TYPE_LIMIT,
-                                          "price": str(0.05 * math.ceil(20.06 * price_1)),
-                                          "quantity": qty,
-                                          "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
-                                          "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
-                                dict_PO_1 = eval(PO_1)
+                            price = live_price(Stock)
+                            if aa == 1:
+                                price_1 = price
+                                print('price_1===', price_1)
+                                telegram_trade_messeges(
+                                    Stock.replace('.NS', ' ') + 'price 1  is  ' + str(price_1).replace('.', ' '))
+                                aa = 2
+                            if price < 0.999 * price_1:
+                                time_2 = dt.now()
                                 while True:
-                                    Order_status_1 = samco.get_order_status(
-                                        order_number=dict_PO_1["orderNumber"])
-                                    dict_Order_status_1 = eval(Order_status_1)
-                                    if dict_Order_status_1["orderStatus"] == "EXECUTED":
-                                        telegram_trade_messeges('SELL EXECUTED trade done')
-                                        print('SELL EXECUTED')
-                                        samco_positions_1 = samco.get_positions_data(
-                                            position_type=samco.POSITION_TYPE_DAY)
-                                        samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
-                                        samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                        print('avgBUYprice===', samco_positions_1[
-                                                                samco_positions_find_1 + 17:samco_positions_find_1 + 27],
-                                              'avgSELLprice===', samco_positions_1[
-                                                                 samco_positions_find_2 + 17:samco_positions_find_2 + 27])
-                                        done = 1
-                                        break
                                     price = live_price(Stock)
-                                    if price < 0.9965 * price_1:
-                                        done = 2
+                                    if price >= price_1:
+                                        a_thread = 0
+                                        placeo = 1
                                         break
-                                    time_exceed(endd_time)
-                                    if exceed == endd_time:
-                                        done = 3
+                                    time_3 = dt.now()
+                                    time_diff_2 = time_3 - time_2
+                                    if (time_diff_2 >= time_m) == True:
+                                        print('2 min done so no trade')
+                                        telegram_trade_messeges('trade cancelled as two minutes are up')
                                         break
-                                if done == 1:
-                                    done = 0
-                                    break
-                                if done == 2:
-                                    done = 0
-                                    PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"], body={
-                                        "orderType": samco.ORDER_TYPE_MARKET,
-                                        "price": ""})
-                                    while True:
-                                        Order_status_2 = samco.get_order_status(
-                                            order_number=dict_PO_1["orderNumber"])
-                                        dict_Order_status_2 = eval(Order_status_2)
-                                        if dict_Order_status_2["orderStatus"] == "EXECUTED":
-                                            telegram_trade_messeges('SELL EXECUTED trade done')
-                                            print('SELL EXECUTED')
-                                            samco_positions_1 = samco.get_positions_data(
-                                                position_type=samco.POSITION_TYPE_DAY)
-                                            samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
-                                            samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                            print('avgBUYprice===', samco_positions_1[
-                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27],
-                                                  'avgSELLprice===', samco_positions_1[
-                                                                     samco_positions_find_2 + 17:samco_positions_find_2 + 27])
-                                            break
-                                    break
-                                if done == 3:
-                                    done = 0
-                                    PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
-                                                              body={
-                                                                  "orderType": samco.ORDER_TYPE_MARKET,
-                                                                  "price": ""})
-                                    while True:
-                                        Order_status_3 = samco.get_order_status(
-                                            order_number=dict_PO_1["orderNumber"])
-                                        dict_Order_status_3 = eval(Order_status_3)
-                                        if dict_Order_status_3["orderStatus"] == "EXECUTED":
-                                            telegram_trade_messeges('SELL EXECUTED trade done')
-                                            print('SELL EXECUTED')
-                                            samco_positions_1 = samco.get_positions_data(
-                                                position_type=samco.POSITION_TYPE_DAY)
-                                            samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
-                                            samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
-                                            print('avgBUYprice===', samco_positions_1[
-                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27],
-                                                  'avgSELLprice===', samco_positions_1[
-                                                                     samco_positions_find_2 + 17:samco_positions_find_2 + 27])
-                                            break
                                 break
-                    aa = 1
+                            time_4 = dt.now()
+                            time_diff_1 = time_4 - time_1
+                            if (time_diff_1 >= time_m) == True:
+                                print('2 min done so no trade')
+                                telegram_trade_messeges('trade cancelled as two minutes are up')
+                                break
+
+                        if placeo == 1:
+                            placeo = 0
+                            PO = samco.place_order(
+                                body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
+                                      "transactionType": samco.TRANSACTION_TYPE_BUY,
+                                      "orderType": samco.ORDER_TYPE_MARKET, "price": "",
+                                      "quantity": qty, "disclosedQuantity": "",
+                                      "orderValidity": samco.VALIDITY_DAY,
+                                      "productType": samco.PRODUCT_MIS,
+                                      "afterMarketOrderFlag": "NO"})
+                            dict_PO = eval(PO)
+                            while True:
+                                Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
+                                dict_Order_status = eval(Order_status)
+                                if dict_Order_status["orderStatus"] == "EXECUTED":
+                                    telegram_trade_messeges('BUY EXECUTED')
+                                    print('BUY EXECUTED')
+                                    samco_positions_1 = samco.get_positions_data(
+                                        position_type=samco.POSITION_TYPE_DAY)
+                                    samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
+                                    samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
+                                    print('avgBUYprice===', samco_positions_1[
+                                                            samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                          'avgSELLprice===', samco_positions_1[
+                                                             samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                    PO_1 = samco.place_order(
+                                        body={"symbolName": Stock_samco, "exchange": samco.EXCHANGE_NSE,
+                                              "transactionType": samco.TRANSACTION_TYPE_SELL,
+                                              "orderType": samco.ORDER_TYPE_LIMIT,
+                                              "price": str(0.05 * math.ceil(20.06 * price_1)),
+                                              "quantity": qty,
+                                              "disclosedQuantity": "", "orderValidity": samco.VALIDITY_DAY,
+                                              "productType": samco.PRODUCT_MIS, "afterMarketOrderFlag": "NO"})
+                                    dict_PO_1 = eval(PO_1)
+                                    while True:
+                                        Order_status_1 = samco.get_order_status(
+                                            order_number=dict_PO_1["orderNumber"])
+                                        dict_Order_status_1 = eval(Order_status_1)
+                                        if dict_Order_status_1["orderStatus"] == "EXECUTED":
+                                            telegram_trade_messeges('SELL EXECUTED trade done')
+                                            print('SELL EXECUTED')
+                                            samco_positions_1 = samco.get_positions_data(
+                                                position_type=samco.POSITION_TYPE_DAY)
+                                            samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
+                                            samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
+                                            print('avgBUYprice===', samco_positions_1[
+                                                                    samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                  'avgSELLprice===', samco_positions_1[
+                                                                     samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                            done = 1
+                                            break
+                                        price = live_price(Stock)
+                                        if price < 0.9965 * price_1:
+                                            done = 2
+                                            break
+                                        time_exceed(endd_time)
+                                        if exceed == endd_time:
+                                            done = 3
+                                            break
+                                    if done == 1:
+                                        done = 0
+                                        break
+                                    if done == 2:
+                                        done = 0
+                                        PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"], body={
+                                            "orderType": samco.ORDER_TYPE_MARKET,
+                                            "price": ""})
+                                        while True:
+                                            Order_status_2 = samco.get_order_status(
+                                                order_number=dict_PO_1["orderNumber"])
+                                            dict_Order_status_2 = eval(Order_status_2)
+                                            if dict_Order_status_2["orderStatus"] == "EXECUTED":
+                                                telegram_trade_messeges('SELL EXECUTED trade done')
+                                                print('SELL EXECUTED')
+                                                samco_positions_1 = samco.get_positions_data(
+                                                    position_type=samco.POSITION_TYPE_DAY)
+                                                samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
+                                                samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
+                                                print('avgBUYprice===', samco_positions_1[
+                                                                        samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                      'avgSELLprice===', samco_positions_1[
+                                                                         samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                                break
+                                        break
+                                    if done == 3:
+                                        done = 0
+                                        PO_3 = samco.modify_order(order_number=dict_PO_1["orderNumber"],
+                                                                  body={
+                                                                      "orderType": samco.ORDER_TYPE_MARKET,
+                                                                      "price": ""})
+                                        while True:
+                                            Order_status_3 = samco.get_order_status(
+                                                order_number=dict_PO_1["orderNumber"])
+                                            dict_Order_status_3 = eval(Order_status_3)
+                                            if dict_Order_status_3["orderStatus"] == "EXECUTED":
+                                                telegram_trade_messeges('SELL EXECUTED trade done')
+                                                print('SELL EXECUTED')
+                                                samco_positions_1 = samco.get_positions_data(
+                                                    position_type=samco.POSITION_TYPE_DAY)
+                                                samco_positions_find_1 = samco_positions_1.find('averageBuyPrice')
+                                                samco_positions_find_2 = samco_positions_1.find('averageSellPrice')
+                                                print('avgBUYprice===', samco_positions_1[
+                                                                        samco_positions_find_1 + 17:samco_positions_find_1 + 27],
+                                                      'avgSELLprice===', samco_positions_1[
+                                                                         samco_positions_find_2 + 17:samco_positions_find_2 + 27])
+                                                break
+                                    break
+                        aa = 1
+                        a_thread = 1
+
+
+obj = []
+for i in Stock1:
+    object = Scrip(Stock=i)
+    obj.append(object)
+
+while True:
+    time_exceed(startt_time)
+    if exceed == startt_time:
+        for i in obj:
+            i.start()
+        break
+
+
 
 print('program ended')
 samco.logout()
