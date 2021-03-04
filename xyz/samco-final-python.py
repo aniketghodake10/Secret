@@ -1,11 +1,11 @@
 import math
-import pandas_datareader as web
-import numpy as np
+# import pandas_datareader as web
+# import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import yfinance as yf
 from datetime import datetime as dt
-from datetime import timedelta as td
+# from datetime import timedelta as td
 from bs4 import BeautifulSoup
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 import requests
@@ -32,14 +32,8 @@ exceed = 0
 done = 0
 placeo = 0
 aa = 1
-time_m = td(seconds=200)
+time_m = 200
 
-
-def time_exceed(time_in_hours_24hour_format):
-    time2 = dt.now()
-    if time2.hour >= time_in_hours_24hour_format:
-        global exceed
-        exceed = time_in_hours_24hour_format
 
 
 def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
@@ -109,6 +103,32 @@ def PO_body(a,b,c):
     return bodyy
 
 
+def time_exceed(a,b,c,d):
+    if d>999999:
+        d=d-1000000
+        c=c+1
+    if c>59:
+        c=c-60
+        b=b+1
+    if b>59:
+        b=b-60
+        a=a+1
+    if a>23:
+        a=a-24
+    now=dt.now()
+    e,f,g,h=now.hour, now.minute, now.second, now.microsecond
+    if e>a:
+        return True
+    if e==a:
+        if f>b:
+            return True
+    if e==a and f==b:
+        if g>c:
+            return True
+    if e==a and f==b and g==c:
+        if h>d:
+            return True
+
 
 ###     FUNCTIONS  ###
 
@@ -130,43 +150,36 @@ Stock_samco1 = Stock_samco1.Symbol
 Stock_samco1 = Stock_samco1.tolist()
 
 Stock1 = []
-Stock_samco_EQ = []
 for i in Stock_samco1:
     j = i + '.NS'
-    k = i + '-EQ'
     Stock1.append(j)
-    Stock_samco_EQ.append(k)
-dict_Stock1 = dict(zip(Stock1, Stock_samco_EQ))
 dict_Stock2 = dict(zip(Stock1, Stock_samco1))
 
 qty = int(input('HOW MUCH QUANTITY TO TRADE TODAYYY = '))
 qty = str(qty)
 
-startt_time = int(input('Enter Start time in hrs in 24hr format = '))
-endd_time = int(input('Enter End time in hrs in 24hr format = '))
-
-csv_1 = pd.read_csv('ScripMaster.csv')
-u = csv_1.loc[:, 'symbolCode':'symbolCode']
-v = csv_1.loc[:, 'tradingSymbol':'tradingSymbol']
-w = v.join(u)
-dict_symbolCode = dict(zip(w.tradingSymbol, w.symbolCode))
+startt_time = [int(x) for x in input('Enter Start time in 24 hrs format ---hours <space> minutes = ').split()]
+endd_time = [int(x) for x in input('Enter End time in 24 hrs format ---hours <space> minutes = ').split()]
 
 
 class Scrip(Thread):
     def __init__(self, Stock):
-        global a_thread, check, exceed, done, placeo, aa, time_m, software_names, operating_systems, user_agent_rotator, samco, Stock_samco_1, Stock1, Stock_samco_EQ, dict_Stock1, dict_Stock2, qty, startt_time, endd_time, dict_symbolCode, hundred_rejection, hundred_target, hundred_SL, zero_rejection, zero_target, zero_SL
+        global a_thread, check, exceed, done, placeo, aa, time_m, software_names, operating_systems, \
+            user_agent_rotator, samco, Stock_samco1, Stock1, dict_Stock2, qty, startt_time, endd_time, \
+            hundred_rejection, hundred_target, hundred_SL, zero_rejection, zero_target, zero_SL
         Thread.__init__(self)
         self.Stock = Stock
+
     def run(self):
+        global a_thread, check, exceed, done, placeo, aa, time_m, software_names, operating_systems, \
+            user_agent_rotator, samco, Stock_samco1, Stock1, dict_Stock2, qty, startt_time, endd_time, \
+            hundred_rejection, hundred_target, hundred_SL, zero_rejection, zero_target, zero_SL
         while True:
-            time_exceed(endd_time)
-            if exceed == endd_time:
+            if time_exceed(endd_time[0],endd_time[1],0,0):
                 break
-            time_exceed(startt_time)
-            if exceed == startt_time:
+            if time_exceed(startt_time[0],startt_time[1],0,0):
                 while True:
-                    time_exceed(endd_time)
-                    if exceed == endd_time:
+                    if time_exceed(endd_time[0],endd_time[1],0,0):
                         break
                     while True:
                         if a_thread==1:
@@ -175,11 +188,10 @@ class Scrip(Thread):
                         cond = dt.now()
                         if cond.minute % 5 == 0 and cond.second == 3:
                             break
-                    telegram_trade_messeges('check stochRSI NEW Ireration')
-                    print('check stochRSI NEW Ireration')
+                    telegram_trade_messeges('checking stochRSI NEW Iteration')
+                    print('checking stochRSI NEW Iteration')
                     stochRSI, df_ltp, df_last_5_values = stochrsi(self.Stock)
                     stochRSI = float('{:.3f}'.format(100 * stochRSI))
-                    symbolCode = dict_symbolCode[dict_Stock1[self.Stock]]
                     Stock_samco = dict_Stock2[self.Stock]
 
                     if stochRSI == 100:
@@ -193,33 +205,26 @@ class Scrip(Thread):
                                 print('\nprice_1===', price_1)
                                 telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' +self.Stock+ '----'+ 'stochRSI is   '+ stochRSI+ 'price 1 is    '+price_1))
                                 aa = 2
+                            if a_thread != 1:
+                                break
                             if price > hundred_rejection * price_1:
                                 time_2 = dt.now()
                                 while True:
-                                    while True:
-                                        if a_thread == 1:
-                                            break
-                                        time_3 = dt.now()
-                                        time_diff_2 = time_3 - time_2
-                                        if (time_diff_2 >= time_m) == True:
-                                            print('2 min done so no trade')
-                                            telegram_trade_messeges('trade cancelled as two minutes are up')
-                                            break
+                                    if a_thread != 1:
+                                        break
                                     price = live_price(self.Stock)
                                     if price <= price_1:
                                         a_thread = 0
                                         placeo = 1
                                         break
-                                    time_3 = dt.now()
-                                    time_diff_2 = time_3 - time_2
-                                    if (time_diff_2 >= time_m) == True:
+
+                                    if time_exceed(time_2.hour,time_2.minute,time_2.second+time_m,time_2.microsecond):
                                         print('2 min done so no trade')
                                         telegram_trade_messeges('trade cancelled as two minutes are up')
                                         break
                                 break
-                            time_4 = dt.now()
-                            time_diff_1 = time_4 - time_1
-                            if (time_diff_1 >= time_m) == True:
+
+                            if time_exceed(time_1.hour,time_1.minute,time_1.second+time_m,time_1.microsecond):
                                 print('2 min done so no trade')
                                 telegram_trade_messeges('trade cancelled as two minutes are up')
                                 break
@@ -250,8 +255,7 @@ class Scrip(Thread):
                                         if price > hundred_SL * price_1:
                                             done = 2
                                             break
-                                        time_exceed(endd_time)
-                                        if exceed == endd_time:
+                                        if time_exceed(endd_time[0],endd_time[1],0,0):
                                             done = 3
                                             break
                                     if done == 1:
@@ -295,24 +299,25 @@ class Scrip(Thread):
                                 print('\nprice_1===', price_1)
                                 telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + self.Stock + '----' + 'stochRSI is   ' + stochRSI + 'price 1 is    ' + price_1))
                                 aa = 2
+                            if a_thread != 1:
+                                break
                             if price < zero_rejection * price_1:
                                 time_2 = dt.now()
                                 while True:
+                                    if a_thread != 1:
+                                        break
                                     price = live_price(self.Stock)
                                     if price >= price_1:
                                         a_thread = 0
                                         placeo = 1
                                         break
-                                    time_3 = dt.now()
-                                    time_diff_2 = time_3 - time_2
-                                    if (time_diff_2 >= time_m) == True:
+
+                                    if time_exceed(time_2.hour,time_2.minute,time_2.second+time_m,time_2.microsecond):
                                         print('2 min done so no trade')
                                         telegram_trade_messeges('trade cancelled as two minutes are up')
                                         break
                                 break
-                            time_4 = dt.now()
-                            time_diff_1 = time_4 - time_1
-                            if (time_diff_1 >= time_m) == True:
+                            if time_exceed(time_1.hour,time_1.minute,time_1.second+time_m,time_1.microsecond):
                                 print('2 min done so no trade')
                                 telegram_trade_messeges('trade cancelled as two minutes are up')
                                 break
@@ -343,8 +348,7 @@ class Scrip(Thread):
                                         if price < zero_SL * price_1:
                                             done = 2
                                             break
-                                        time_exceed(endd_time)
-                                        if exceed == endd_time:
+                                        if time_exceed(endd_time[0],endd_time[1],0,0):
                                             done = 3
                                             break
                                     if done == 1:
@@ -384,8 +388,7 @@ for i in Stock1:
     obj.append(i)
 
 while True:
-    time_exceed(startt_time)
-    if exceed == startt_time:
+    if time_exceed(startt_time[0],startt_time[1],0,0):
         print('Trade m-c is Started---')
         telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
         telegram_trade_messeges('THE START')
@@ -394,8 +397,7 @@ while True:
         break
 
 while True:
-    time_exceed(endd_time)
-    if exceed == endd_time:
+    if time_exceed(endd_time[0],endd_time[1],0,0):
         samco_holdings = samco.get_holding()
         if samco_holdings.find('tradingSymbol') != -1:
             telegram_trade_messeges('holdings are there CHECK app')
