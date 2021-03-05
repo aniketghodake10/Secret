@@ -59,14 +59,14 @@ def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
     return stochrsii_K[-1], df[-6:], df_5['Open'][-1]
 
 
-def live_price(s):
-    global user_agent_rotator
-    url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/{}.ns?modules=price'.format(s)
-    user_agent = user_agent_rotator.get_random_user_agent()
-    headers = {'User-Agent': user_agent}
-    r = requests.get(url, headers)
-    data = r.json()
-    return data['quoteSummary']['result'][0]['price']['regularMarketPrice']['raw']
+def live_price(tickerr):
+    global samco
+    a = samco.get_quote(symbol_name=tickerr, exchange=samco.EXCHANGE_NSE)
+    a = eval(a)
+    ltp = a["lastTradedPrice"]
+    ltp = ltp.replace(',', '')
+    ltp = float(ltp)
+    return ltp
 
 
 def telegram_trade_messeges(bot_messege):
@@ -129,6 +129,14 @@ def time_exceed(a,b,c,d):
 
 samco = StocknoteAPIPythonBridge()
 
+print('Minimum Amount is Rs 30K')
+
+amount = int(input('HOW MUCH AMOUNT TO TRADE TODAYYY = '))
+
+startt_time = [int(x) for x in input('Enter Start time in 24 hrs format ---hours <space> minutes = ').split()]
+endd_time = [int(x) for x in input('Enter End time in 24 hrs format ---hours <space> minutes = ').split()]
+
+
 userId = input("Enter Samco userId : ")
 password = input("Enter Samco Password : ")
 yob = input("Enter Samco Year Of Birth : ")
@@ -149,12 +157,6 @@ for i in Stock_samco1:
     Stock1.append(j)
 dict_Stock2 = dict(zip(Stock1, Stock_samco1))
 
-qty = int(input('HOW MUCH QUANTITY TO TRADE TODAYYY = '))
-order_type = input("Enter order type cnc or mis : ")
-qty = str(qty)
-
-startt_time = [int(x) for x in input('Enter Start time in 24 hrs format ---hours <space> minutes = ').split()]
-endd_time = [int(x) for x in input('Enter End time in 24 hrs format ---hours <space> minutes = ').split()]
 
 while True:
     if time_exceed(endd_time[0],endd_time[1],0,0):
@@ -186,6 +188,8 @@ while True:
                     break
 
             if stochRSI == 100 or stochRSI == 0:
+                qty= math.ceil(amount / (1.01 * price_open))
+                qty=str(qty)
 
                 if stochRSI == 100 and order_type != 'cnc':
                     time_1 = dt.now()
