@@ -29,7 +29,7 @@ check = 0
 exceed = 0
 done = 0
 placeo = 0
-time_m_min = 3
+time_m_min = 4
 time_m_sec = 20
 
 
@@ -161,7 +161,8 @@ dict_Stock2 = dict(zip(Stock1, Stock_samco1))
 while True:
     if time_exceed(endd_time[0],endd_time[1],0,0):
         samco_holdings = samco.get_holding()
-        if samco_holdings.find('tradingSymbol') != -1:
+        dict_samco_holdings = eval(samco_holdings)
+        if dict_samco_holdings["holdingDetails"]:
             telegram_trade_messeges('holdings are there CHECK app')
         telegram_trade_messeges('THE END')
         telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
@@ -200,14 +201,13 @@ while True:
                     while True:
                         price = live_price(Stock_samco)
                         if price > hundred_rejection * price_open:
-                            time_2 = dt.now()
                             while True:
                                 price = live_price(Stock_samco)
                                 if price <= price_open:
                                     placeo = 1
                                     break
 
-                                if time_exceed(time_2.hour, time_2.minute+ time_m_min, time_2.second + time_m_sec, time_2.microsecond):
+                                if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
                                     print('2 min done so no trade')
                                     telegram_trade_messeges('trade cancelled as two minutes are up')
                                     break
@@ -280,14 +280,13 @@ while True:
                     while True:
                         price = live_price(Stock_samco)
                         if price < zero_rejection * price_open:
-                            time_2 = dt.now()
                             while True:
                                 price = live_price(Stock_samco)
                                 if price >= price_open:
                                     placeo = 1
                                     break
 
-                                if time_exceed(time_2.hour, time_2.minute+ time_m_min, time_2.second + time_m_sec, time_2.microsecond):
+                                if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
                                     print('2 min done so no trade')
                                     telegram_trade_messeges('trade cancelled as two minutes are up')
                                     break
