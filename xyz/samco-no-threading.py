@@ -132,6 +132,7 @@ samco = StocknoteAPIPythonBridge()
 print('Minimum Amount is Rs 30K')
 
 amount = int(input('HOW MUCH AMOUNT TO TRADE TODAYYY = '))
+order_type = input("Enter order type cnc or mis : ")
 
 startt_time = [int(x) for x in input('Enter Start time in 24 hrs format ---hours <space> minutes = ').split()]
 endd_time = [int(x) for x in input('Enter End time in 24 hrs format ---hours <space> minutes = ').split()]
