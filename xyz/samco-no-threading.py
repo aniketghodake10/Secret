@@ -59,14 +59,14 @@ def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
     return stochrsii_K[-1], df[-6:], df_5['Open'][-1]
 
 
-def live_price(tickerr):
-    global samco
-    a = samco.get_quote(symbol_name=tickerr, exchange=samco.EXCHANGE_NSE)
-    a = eval(a)
-    ltp = a["lastTradedPrice"]
-    ltp = ltp.replace(',', '')
-    ltp = float(ltp)
-    return ltp
+def live_price(s):
+    global user_agent_rotator
+    url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/{}.ns?modules=price'.format(s)
+    user_agent = user_agent_rotator.get_random_user_agent()
+    headers = {'User-Agent': user_agent}
+    r = requests.get(url, headers)
+    data = r.json()
+    return data['quoteSummary']['result'][0]['price']['regularMarketPrice']['raw']
 
 
 def telegram_trade_messeges(bot_messege):
