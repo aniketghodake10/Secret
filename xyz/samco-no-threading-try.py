@@ -6,7 +6,7 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime as dt
 # from datetime import timedelta as td
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 import requests
 from random_user_agent.user_agent import UserAgent
@@ -27,7 +27,6 @@ zero_target=1.003/0.05
 zero_SL=0.9965
 zero_last_confirmation=0.9998
 
-check = 0
 exceed = 0
 done = 0
 placeo = 0
@@ -172,14 +171,14 @@ while True:
         dict_samco_holdings = eval(samco_holdings)
         if dict_samco_holdings["statusMessage"]=="User Holding details retrieved successfully":
             print('holdings are there CHECK APP')
-            # telegram_trade_messeges('holdings are there CHECK app')
-        # telegram_trade_messeges('THE END')
-        # telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
+            telegram_trade_messeges('holdings are there CHECK app')
+        telegram_trade_messeges('THE END')
+        telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
         break
     if time_exceed(startt_time[0],startt_time[1],0,0):
         print('Trade m-c is Started---')
-        # telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
-        # telegram_trade_messeges('THE START')
+        telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
+        telegram_trade_messeges('THE START')
         while True:
             if time_exceed(endd_time[0], endd_time[1], 0, 0):
                 break
@@ -204,9 +203,9 @@ while True:
                 if stochRSI == 100 and order_type != 'cnc':
                     time_1 = dt.now()
                     print(df_last_5_values)
-                    print('\nWEoooooo WE got the Stock ---', Stock, '----', 'stochRSI===', stochRSI)
+                    print('\nWEoooooo WE got the Stock ---', Stock_samco, '----', 'stochRSI===', stochRSI)
                     print('\nprice_open===', price_open)
-                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + str(Stock) + '----' + 'stochRSI is   ' + str(stochRSI) + '   price 1 is    ' + str(price_open)))
+                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI) + '   price 1 is    ' + str(price_open)))
                     while True:
                         price = live_price(Stock_samco)
                         if price >= hundred_rejection * price_open:
@@ -218,12 +217,12 @@ while True:
                                     break
 
                                 if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
-                                    print('2 min done so no trade')
-                                    telegram_trade_messeges('trade cancelled as two minutes are up')
+                                    print('4 min done so no trade')
+                                    telegram_trade_messeges('trade cancelled as four minutes are up')
                                     break
                         if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
-                            print('2 min done so no trade')
-                            telegram_trade_messeges('trade cancelled as two minutes are up')
+                            print('4 min done so no trade')
+                            telegram_trade_messeges('trade cancelled as four minutes are up')
                             break
                     price=live_price(Stock_samco)
                     if price >= hundred_last_confirmation * price_open:
@@ -285,9 +284,9 @@ while True:
                 if stochRSI == 0:
                     time_1 = dt.now()
                     print(df_last_5_values)
-                    print('\nWEoooooo WE got the Stock ---', Stock, '----', 'stochRSI===', stochRSI)
+                    print('\nWEoooooo WE got the Stock ---', Stock_samco, '----', 'stochRSI===', stochRSI)
                     print('\nprice_open===', price_open)
-                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + str(Stock) + '----' + 'stochRSI is   ' + str(stochRSI) + '    price 1 is    ' + str(price_open)))
+                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI) + '    price 1 is    ' + str(price_open)))
                     while True:
                         price = live_price(Stock_samco)
                         if price <= zero_rejection * price_open:
@@ -299,12 +298,12 @@ while True:
                                     break
 
                                 if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
-                                    print('2 min done so no trade')
-                                    telegram_trade_messeges('trade cancelled as two minutes are up')
+                                    print('4 min done so no trade')
+                                    telegram_trade_messeges('trade cancelled as four minutes are up')
                                     break
                         if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
-                            print('2 min done so no trade')
-                            telegram_trade_messeges('trade cancelled as two minutes are up')
+                            print('4 min done so no trade')
+                            telegram_trade_messeges('trade cancelled as four minutes are up')
                             break
                     price = live_price(Stock_samco)
                     if price <= zero_last_confirmation * price_open:
