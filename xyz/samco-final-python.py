@@ -6,7 +6,7 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime as dt
 # from datetime import timedelta as td
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 import requests
 from random_user_agent.user_agent import UserAgent
@@ -25,7 +25,6 @@ zero_rejection=0.999
 zero_target=1.003/0.05
 zero_SL=0.9965
 
-check = 0
 exceed = 0
 done = 0
 placeo_100 = 0
@@ -58,16 +57,6 @@ def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
     print('.              .')
 
     return stochrsii_K[-1], df[-6:], df_5['Open'][-1]
-
-
-# def live_price(tickerr):
-#     global samco
-#     a = samco.get_quote(symbol_name=tickerr, exchange=samco.EXCHANGE_NSE)
-#     a = eval(a)
-#     ltp = a["lastTradedPrice"]
-#     ltp = ltp.replace(',', '')
-#     ltp = float(ltp)
-#     return ltp
 
 
 def live_price(s):
@@ -110,6 +99,8 @@ def PO_body(a,b,c,d):
 
 
 def time_exceed(a,b,c,d):
+    global startt_day, startt_month, startt_year
+    now=dt.now()
     if d>999999:
         d=d-1000000
         c=c+1
@@ -119,8 +110,8 @@ def time_exceed(a,b,c,d):
     if b>59:
         b=b-60
         a=a+1
-    if a>23:
-        a=a-24
+    if now.year > startt_year or now.month > startt_year or now.day > startt_day:
+        a = a - 24
     now=dt.now()
     e,f,g,h=now.hour, now.minute, now.second, now.microsecond
     if e>a:
@@ -132,7 +123,7 @@ def time_exceed(a,b,c,d):
         if g>c:
             return True
     if e==a and f==b and g==c:
-        if h>d:
+        if h>=d:
             return True
 ###     FUNCTIONS  ###
 
@@ -146,6 +137,7 @@ amount = int(input('HOW MUCH AMOUNT TO TRADE TODAYYY = '))
 order_type = input("Enter order type cnc or mis : ")
 
 startt_time = [int(x) for x in input('Enter Start time in 24 hrs format ---hours <space> minutes = ').split()]
+print('If WORK NIGHT endd time after time 12:00 AM put endd time as 25,26,27 not 0,1,2')
 endd_time = [int(x) for x in input('Enter End time in 24 hrs format ---hours <space> minutes = ').split()]
 
 
@@ -169,12 +161,15 @@ for i in Stock_samco1:
     Stock1.append(j)
 dict_Stock2 = dict(zip(Stock1, Stock_samco1))
 
-
+startt_year=dt.now().year
+startt_month = dt.now().month
+startt_day = dt.now().day
 while True:
     if time_exceed(endd_time[0],endd_time[1],0,0):
         samco_holdings = samco.get_holding()
         dict_samco_holdings = eval(samco_holdings)
-        if dict_samco_holdings["holdingDetails"]:
+        if dict_samco_holdings["statusMessage"] == "User Holding details retrieved successfully":
+            print('holdings are there CHECK APP')
             telegram_trade_messeges('holdings are there CHECK app')
         telegram_trade_messeges('THE END')
         telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
@@ -213,7 +208,7 @@ while True:
                 while True:
                     for Stock5 , price_open in Stock100_price_open100:
                         price = live_price(Stock5)
-                        if price > hundred_rejection * price_open:
+                        if price >= hundred_rejection * price_open:
                             Stock7100.append(Stock5)
                             Stock7100.append(price_open)
                             Stock7100_price_open5100.append(Stock7100)
@@ -221,7 +216,7 @@ while True:
 
                     for Stock6 , price_open in Stock0_price_open0:
                         price = live_price(Stock6)
-                        if price < zero_rejection * price_open:
+                        if price <= zero_rejection * price_open:
                             Stock80.append(Stock6)
                             Stock80.append(price_open)
                             Stock80_price_open60.append(Stock80)
@@ -269,8 +264,7 @@ while True:
                         if dict_Order_status["orderStatus"] == "EXECUTED":
                             print('SELL EXECUTED   avgExecutionPrice is ' + dict_Order_status["orderDetails"]["avgExecutionPrice"])
                             telegram_trade_messeges(string_remove_char('SELL EXECUTED   avgExecutionPrice is ' + dict_Order_status["orderDetails"]["avgExecutionPrice"]))
-                            PO_1 = samco.place_order(
-                                body=PO_body('b', 'limit', str(0.05 * math.ceil(hundred_target * price_open)),order_type))
+                            PO_1 = samco.place_order(body=PO_body('b', 'limit', str(0.05 * math.ceil(hundred_target * price_open)),order_type))
                             dict_PO_1 = eval(PO_1)
                             while True:
                                 Order_status_1 = samco.get_order_status(order_number=dict_PO_1["orderNumber"])
