@@ -6,7 +6,7 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime as dt
 # from datetime import timedelta as td
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 import requests
 from random_user_agent.user_agent import UserAgent
@@ -25,7 +25,6 @@ zero_rejection=0.999
 zero_target=1.003/0.05
 zero_SL=0.9965
 
-check = 0
 exceed = 0
 done = 0
 placeo = 0
@@ -99,6 +98,8 @@ def PO_body(a,b,c,d):
 
 
 def time_exceed(a,b,c,d):
+    global startt_day, startt_month, startt_year
+    now=dt.now()
     if d>999999:
         d=d-1000000
         c=c+1
@@ -108,8 +109,8 @@ def time_exceed(a,b,c,d):
     if b>59:
         b=b-60
         a=a+1
-    if a>23:
-        a=a-24
+    if now.year > startt_year or now.month > startt_year or now.day > startt_day:
+        a = a - 24
     now=dt.now()
     e,f,g,h=now.hour, now.minute, now.second, now.microsecond
     if e>a:
@@ -121,7 +122,7 @@ def time_exceed(a,b,c,d):
         if g>c:
             return True
     if e==a and f==b and g==c:
-        if h>d:
+        if h>=d:
             return True
 ###     FUNCTIONS  ###
 
@@ -135,6 +136,7 @@ amount = int(input('HOW MUCH AMOUNT TO TRADE TODAYYY = '))
 order_type = input("Enter order type cnc or mis : ")
 
 startt_time = [int(x) for x in input('Enter Start time in 24 hrs format ---hours <space> minutes = ').split()]
+print('If WORK NIGHT endd time after time 12:00 AM put endd time as 25,26,27 not 0,1,2')
 endd_time = [int(x) for x in input('Enter End time in 24 hrs format ---hours <space> minutes = ').split()]
 
 
@@ -158,12 +160,15 @@ for i in Stock_samco1:
     Stock1.append(j)
 dict_Stock2 = dict(zip(Stock1, Stock_samco1))
 
-
+startt_year=dt.now().year
+startt_month = dt.now().month
+startt_day = dt.now().day
 while True:
     if time_exceed(endd_time[0],endd_time[1],0,0):
         samco_holdings = samco.get_holding()
         dict_samco_holdings = eval(samco_holdings)
-        if dict_samco_holdings["holdingDetails"]:
+        if dict_samco_holdings["statusMessage"] == "User Holding details retrieved successfully":
+            print('holdings are there CHECK APP')
             telegram_trade_messeges('holdings are there CHECK app')
         telegram_trade_messeges('THE END')
         telegram_trade_messeges('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
@@ -196,12 +201,12 @@ while True:
                 if stochRSI == 100 and order_type != 'cnc':
                     time_1 = dt.now()
                     print(df_last_5_values)
-                    print('\nWEoooooo WE got the Stock ---', Stock, '----', 'stochRSI===', stochRSI)
+                    print('\nWEoooooo WE got the Stock ---', Stock_samco, '----', 'stochRSI===', stochRSI)
                     print('\nprice_open===', price_open)
-                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + str(Stock) + '----' + 'stochRSI is   ' + str(stochRSI) + '   price 1 is    ' + str(price_open)))
+                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI) + '   price 1 is    ' + str(price_open)))
                     while True:
                         price = live_price(Stock_samco)
-                        if price > hundred_rejection * price_open:
+                        if price >= hundred_rejection * price_open:
                             while True:
                                 price = live_price(Stock_samco)
                                 if price <= price_open:
@@ -209,14 +214,14 @@ while True:
                                     break
 
                                 if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
-                                    print('2 min done so no trade')
-                                    telegram_trade_messeges('trade cancelled as two minutes are up')
+                                    print('4 min done so no trade')
+                                    telegram_trade_messeges('trade cancelled as four minutes are up')
                                     break
                             break
 
                         if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
-                            print('2 min done so no trade')
-                            telegram_trade_messeges('trade cancelled as two minutes are up')
+                            print('4 min done so no trade')
+                            telegram_trade_messeges('trade cancelled as four minutes are up')
                             break
 
                     if placeo == 1:
@@ -275,12 +280,12 @@ while True:
                 if stochRSI == 0:
                     time_1 = dt.now()
                     print(df_last_5_values)
-                    print('\nWEoooooo WE got the Stock ---', Stock, '----', 'stochRSI===', stochRSI)
+                    print('\nWEoooooo WE got the Stock ---', Stock_samco, '----', 'stochRSI===', stochRSI)
                     print('\nprice_open===', price_open)
-                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + str(Stock) + '----' + 'stochRSI is   ' + str(stochRSI) + '    price 1 is    ' + str(price_open)))
+                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI) + '    price 1 is    ' + str(price_open)))
                     while True:
                         price = live_price(Stock_samco)
-                        if price < zero_rejection * price_open:
+                        if price <= zero_rejection * price_open:
                             while True:
                                 price = live_price(Stock_samco)
                                 if price >= price_open:
@@ -288,13 +293,13 @@ while True:
                                     break
 
                                 if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
-                                    print('2 min done so no trade')
-                                    telegram_trade_messeges('trade cancelled as two minutes are up')
+                                    print('4 min done so no trade')
+                                    telegram_trade_messeges('trade cancelled as four minutes are up')
                                     break
                             break
                         if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
-                            print('2 min done so no trade')
-                            telegram_trade_messeges('trade cancelled as two minutes are up')
+                            print('4 min done so no trade')
+                            telegram_trade_messeges('trade cancelled as four minutes are up')
                             break
 
                     if placeo == 1:
