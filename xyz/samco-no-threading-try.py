@@ -19,13 +19,13 @@ operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
 user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
 
 hundred_rejection=1.0015
-hundred_target=0.997/0.05
-hundred_SL=1.004
-hundred_last_confirmation=0.9985
+hundred_target=0.996/0.05
+hundred_SL=1.012
+hundred_last_confirmation=0.9991
 zero_rejection=0.9985
-zero_target=1.003/0.05
-zero_SL=0.996
-zero_last_confirmation=1.0015
+zero_target=1.004/0.05
+zero_SL=0.988
+zero_last_confirmation=1.0009
 
 exceed = 0
 done = 0
@@ -34,7 +34,7 @@ time_m_min = 4
 time_m_sec = 25
 
 
-def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
+def stochrsi_main(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
     df_5 = yf.download(tickers=tickerr, period='2d', interval='5m')
     df_6=df_5[:-1]
     df = df_6['Close']
@@ -57,7 +57,34 @@ def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
     stochrsii_D = stochrsii_K.rolling(smoothD).mean()
     print('.              .')
 
-    return stochrsii_K[-1], df[-6:], df_5['Open'][-1], df[-1], df_6['Low'][-1], df_6['High'][-1], df_5['Low'][-1], df_5['High'][-1]
+    return stochrsii_K[-1], df_5[-6:]
+
+
+def stochrsi(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
+    df_5 = yf.download(tickers=tickerr, period='2d', interval='5m')
+    df_5=df_5[:-1]
+    df_6=df_5[:-1]
+    df = df_6['Close']
+    delta = df_6['Close'].diff(1)
+    delta.dropna(inplace=True)
+    gain, loss = delta.copy(), delta.copy()
+    gain[gain < 0] = 0
+    loss[loss > 0] = 0
+
+    _gain = gain.ewm(com=(period - 1), min_periods=period).mean()
+    _loss = loss.abs().ewm(com=(period - 1), min_periods=period).mean()
+
+    RS = _gain / _loss
+    rsii = 100 - (100 / (1 + RS))
+
+    stochrsii = (rsii - rsii.rolling(period).min()) / (rsii.rolling(period).max() - rsii.rolling(period).min())
+    # stochrsii_K = stochrsii.ewm(span=smoothK).mean()
+    # stochrsii_D = stochrsii_K.ewm(span=smoothD).mean()
+    stochrsii_K = stochrsii.rolling(smoothK).mean()
+    stochrsii_D = stochrsii_K.rolling(smoothD).mean()
+    print('.              .')
+
+    return df[-1], df_5['Open'][-1], df_6['Low'][-1], df_6['High'][-1], df_5['Low'][-1], df_5['High'][-1]
 
 
 def live_price(s):
@@ -191,7 +218,7 @@ while True:
             print('checking stochRSI NEW Iteration')
             telegram_trade_messeges('checking stochRSI NEW Iteration')
             for Stock2 in Stock1:
-                stochRSI, df_last_5_values, price_open, df_last_value, df_low, df_high, _ , _ = stochrsi(Stock2)
+                stochRSI, df_last_5_values = stochrsi_main(Stock2)
                 stochRSI = float('{:.3f}'.format(100 * stochRSI))
                 if stochRSI == 100 or stochRSI == 0:
                     Stock = Stock2
@@ -199,25 +226,35 @@ while True:
                     break
 
             if stochRSI == 100 or stochRSI == 0:
-                qty= math.ceil(amount / (1.01 * price_open))
-                qty=str(qty)
+                qty = math.ceil(amount / (1.01 * price_open))
+                qty = str(qty)
 
                 if stochRSI == 100 and order_type != 'cnc':
                     time_1 = dt.now()
                     print(df_last_5_values)
                     print('\nWEoooooo WE got the Stock ---', Stock_samco, '----', 'stochRSI===', stochRSI)
-                    print('\nprice_open===', price_open)
-                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI) + '   price open is    ' + str(price_open)))
-                    _ , _ , _ , _ , _ , _ , _ , check_high = stochrsi(Stock)
+                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI)))
                     while True:
-                        if df_high >= hundred_rejection * df_last_value:
-                            placeo=1
+                        cond = dt.now()
+                        if cond.minute % 5 == 1 and cond.second >= 7 and cond.second <= 20:
                             break
+                    df_ltp, price_open, df_low, df_high, check_low , check_high = stochrsi(Stock)
+                    print('\nprice_open===', price_open)
+                    while True:
                         price = live_price(Stock_samco)
-                        if check_high >= hundred_rejection * price_open or price >= hundred_rejection * price_open and placeo==0:
+                        if check_high >= hundred_rejection * price_open or price >= hundred_rejection * price_open:
+                            placeo = 1
+                            print('first condition satisfied')
+                            telegram_trade_messeges('first condition satisfied')
+                            break
+                        if df_high >= hundred_rejection * df_ltp:
                             placeo=1
+                            print('first condition satisfied')
+                            telegram_trade_messeges('first condition satisfied')
                             break
                         if time_exceed(time_1.hour, time_1.minute+ time_m_min, time_1.second + time_m_sec, time_1.microsecond):
+                            print('4 min done so no trade')
+                            telegram_trade_messeges('trade cancelled as four minutes are up')
                             break
                     while True:
                         cond = dt.now()
@@ -226,14 +263,12 @@ while True:
                     price=live_price(Stock_samco)
                     if price > hundred_last_confirmation * price_open:
                         placeo=0
-                    if placeo==0:
-                        print('4 min done so no trade')
-                        telegram_trade_messeges('trade cancelled as four minutes are up')
 
                     if placeo == 1:
                         placeo = 0
                         PO = samco.place_order(body=PO_body('sell', 'm', 'na', order_type))
                         dict_PO = eval(PO)
+                        print('All conditions satisfied')
                         while True:
                             Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
                             dict_Order_status = eval(Order_status)
@@ -252,6 +287,8 @@ while True:
                                         break
                                     price = live_price(Stock_samco)
                                     if price > hundred_SL * float(dict_Order_status["orderDetails"]["avgExecutionPrice"]):
+                                        print('SL')
+                                        telegram_trade_messeges('SL')
                                         done = 2
                                         break
                                     if time_exceed(15, 45, 0, 0):
@@ -264,7 +301,8 @@ while True:
                                     break
                                 if done == 2:
                                     done = 0
-                                    PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],body={"orderType": samco.ORDER_TYPE_MARKET, "price": ""})
+                                    PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],body={"orderType": samco.ORDER_TYPE_MARKET})
+                                    print(PO_2)
                                     while True:
                                         Order_status_2 = samco.get_order_status(order_number=dict_PO_1["orderNumber"])
                                         dict_Order_status_2 = eval(Order_status_2)
@@ -282,18 +320,28 @@ while True:
                     time_1 = dt.now()
                     print(df_last_5_values)
                     print('\nWEoooooo WE got the Stock ---', Stock_samco, '----', 'stochRSI===', stochRSI)
-                    print('\nprice_open===', price_open)
-                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI) + '   price open is    ' + str(price_open)))
-                    _, _, _, _, _, _, check_low, _ = stochrsi(Stock)
+                    telegram_trade_messeges(string_remove_char('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI)))
                     while True:
-                        if df_low <= zero_rejection * df_last_value:
-                            placeo = 1
+                        cond = dt.now()
+                        if cond.minute % 5 == 1 and cond.second >= 7 and cond.second <= 20:
                             break
+                    df_ltp, price_open, df_low, df_high, check_low , check_high = stochrsi(Stock)
+                    print('\nprice_open===', price_open)
+                    while True:
                         price = live_price(Stock_samco)
-                        if check_low <= zero_rejection * price_open or price <= zero_rejection * price_open and placeo == 0:
-                            placeo=1
+                        if check_low <= zero_rejection * price_open or price <= zero_rejection * price_open:
+                            placeo = 1
+                            print('first condition satisfied')
+                            telegram_trade_messeges('first condition satisfied')
+                            break
+                        if df_low <= zero_rejection * df_ltp:
+                            placeo = 1
+                            print('first condition satisfied')
+                            telegram_trade_messeges('first condition satisfied')
                             break
                         if time_exceed(time_1.hour, time_1.minute + time_m_min, time_1.second + time_m_sec,time_1.microsecond):
+                            print('4 min done so no trade')
+                            telegram_trade_messeges('trade cancelled as four minutes are up')
                             break
                     while True:
                         cond = dt.now()
@@ -302,14 +350,12 @@ while True:
                     price = live_price(Stock_samco)
                     if price < zero_last_confirmation * price_open:
                         placeo = 0
-                    if placeo == 0:
-                        print('4 min done so no trade')
-                        telegram_trade_messeges('trade cancelled as four minutes are up')
 
                     if placeo == 1:
                         placeo = 0
                         PO = samco.place_order(body=PO_body('buy', 'm', 'na', order_type))
                         dict_PO = eval(PO)
+                        print('All conditions satisfied')
                         while True:
                             Order_status = samco.get_order_status(order_number=dict_PO["orderNumber"])
                             dict_Order_status = eval(Order_status)
@@ -328,6 +374,8 @@ while True:
                                         break
                                     price = live_price(Stock_samco)
                                     if price < zero_SL * float(dict_Order_status["orderDetails"]["avgExecutionPrice"]):
+                                        print('SL hit')
+                                        telegram_trade_messeges('SL hit')
                                         done = 2
                                         break
                                     if time_exceed(15, 45, 0, 0):
@@ -340,7 +388,8 @@ while True:
                                     break
                                 if done == 2:
                                     done = 0
-                                    PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],body={"orderType": samco.ORDER_TYPE_MARKET, "price": ""})
+                                    PO_2 = samco.modify_order(order_number=dict_PO_1["orderNumber"],body={"orderType": samco.ORDER_TYPE_MARKET})
+                                    print(PO_2)
                                     while True:
                                         Order_status_2 = samco.get_order_status(order_number=dict_PO_1["orderNumber"])
                                         dict_Order_status_2 = eval(Order_status_2)
