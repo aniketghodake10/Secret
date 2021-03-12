@@ -9,29 +9,26 @@ from datetime import datetime as dt
 # from bs4 import BeautifulSoup
 from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
 import requests
-from random_user_agent.user_agent import UserAgent
-from random_user_agent.params import SoftwareName, OperatingSystem
+# from random_user_agent.user_agent import UserAgent
+# from random_user_agent.params import SoftwareName, OperatingSystem
+import time
 # from threading import *
 
-###     FUNCTIONS  ###
-software_names = [SoftwareName.CHROME.value, SoftwareName.FIREFOX.value, SoftwareName.SAFARI.value]
-operating_systems = [OperatingSystem.WINDOWS.value, OperatingSystem.LINUX.value]
-user_agent_rotator = UserAgent(software_names=software_names, operating_systems=operating_systems, limit=100)
+#---     FUNCTIONS  ---
 
-hundred_rejection = 1.0015
+hundred_rejection = 1.0014
 hundred_target = 0.997
 hundred_SL = 1.008
 hundred_last_confirmation = 0.9991
 hundred_last_confirmation_2 = 0.9973
-hundred_last_confirmation_3 = 0.998
-zero_rejection = 0.9985
+hundred_last_confirmation_3 = 0.9985
+zero_rejection = 0.9986
 zero_target = 1.003
 zero_SL = 0.992
 zero_last_confirmation = 1.0009
 zero_last_confirmation_2 = 1.0027
-zero_last_confirmation_3 = 1.002
+zero_last_confirmation_3 = 1.0015
 
-done = 0
 conf = 0
 exceed = 0
 placeo = 0
@@ -59,7 +56,6 @@ def stochrsi_K(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
             break
     if conf == 1:
         conf=0
-        print(df_5)
         df_6 = df_5[:-1]
         delta = df_6['Close'].diff(1)
         delta.dropna(inplace=True)
@@ -105,7 +101,6 @@ def ohlc_data(tickerr):
             break
     if conf ==1 :
         conf=0
-        print(df_5)
         df_5 = df_5[:-1]
         df_6 = df_5[:-1]
         df = df_6['Close']
@@ -115,14 +110,20 @@ def ohlc_data(tickerr):
     else:
         return None,None,None,None,None,None
 
-def live_price(s):
-    global user_agent_rotator
-    url = 'https://query2.finance.yahoo.com/v10/finance/quoteSummary/{}.ns?modules=price'.format(s)
-    user_agent = user_agent_rotator.get_random_user_agent()
-    headers = {'User-Agent': user_agent}
-    r = requests.get(url, headers)
-    data = r.json()
-    return data['quoteSummary']['result'][0]['price']['regularMarketPrice']['raw']
+
+def live_price(tickerr):
+    global samco, ltp
+    try:
+        time.sleep(0.4)
+        a = samco.get_quote(symbol_name=tickerr, exchange=samco.EXCHANGE_NSE)
+        a = eval(a)
+        ltp = a["lastTradedPrice"]
+        ltp = ltp.replace(',', '')
+        ltp = float(ltp)
+    except Exception as e:
+        print(e)
+        printt_telegram('live price ltp error')
+    return ltp
 
 
 def telegram_trade_messeges(bot_messege):
@@ -210,6 +211,7 @@ def order_status_dict(a):
 
 
 def square_off(a):
+    done = 0
     if a == zero_target:
         price = live_price(Stock_samco)
         if price >= a * avg:
@@ -299,8 +301,8 @@ def square_off(a):
                             done=1
                             break
                     break
-
-###     FUNCTIONS  ###
+    return done
+#---     FUNCTIONS  ---
 
 
 
@@ -357,7 +359,7 @@ try:
             while True:
                 if time_exceed(endd_time[0], endd_time[1], 0, 0):
                     break
-                cond(0, 15, 30)
+                cond(0, 15, 23)
                 time_1 = dt.now()
                 printt_telegram('checking stochRSI NEW Iteration')
                 for Stock2 in Stock1:
@@ -371,7 +373,7 @@ try:
                 if stochRSI > 99 or stochRSI < 1:
                     print(df_last_5_values)
                     printt_telegram('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI))
-                    cond(1, 15, 30)
+                    cond(1, 15, 25)
 
                     while stochRSI > 99 and order_type != 'cnc':
                         df_ltp, price_open, df_low, df_high, check_low, check_high = ohlc_data(Stock)
@@ -414,7 +416,6 @@ try:
                                 if order_status_dict(dict_PO)["orderStatus"] == "EXECUTED":
                                     printt_telegram('SELL EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO)["orderDetails"]["avgExecutionPrice"])
                                     PO_2 = samco.place_order(body=PO_body('buy', 'slm', str(0.05 * math.ceil((hundred_SL * avg) / 0.05)),order_type))
-                                    print(PO_2)
                                     dict_PO_2 = eval(PO_2)
                                     while True:
                                         price = live_price(Stock_samco)
@@ -422,12 +423,12 @@ try:
                                             if order_status_dict(dict_PO_2)["orderStatus"] == "EXECUTED":
                                                 printt_telegram(' SL hit BUY EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO_2)["orderDetails"]["avgExecutionPrice"])
                                                 break
-                                        square_off(hundred_target)
-                                        if done == 1:
-                                            done = 0
+                                        if time_exceed(14, 50, 0, 0):
+                                            PO_1 = samco.place_order(body=PO_body('buy', 'limit', str(0.05 * math.ceil((hundred_target * avg) / 0.05)), order_type))
+                                            print(PO_1)
+                                            printt_telegram('BUY order may be Auto square off as time is two fifty ')
                                             break
-                                        if time_exceed(15, 45, 0, 0):
-                                            printt_telegram('BUY order may be Auto square off as time is three thirty ')
+                                        if square_off(hundred_target) == 1:
                                             break
                                     break
                         stochRSI = 50
@@ -473,7 +474,6 @@ try:
                                 if order_status_dict(dict_PO)["orderStatus"] == "EXECUTED":
                                     printt_telegram('BUY EXECUTED   avgExecutionPrice is ' + str(avg))
                                     PO_2 = samco.place_order(body=PO_body('sell', 'slm', str(0.05 * math.ceil((zero_SL * avg) / 0.05)),order_type))
-                                    print(PO_2)
                                     dict_PO_2 = eval(PO_2)
                                     while True:
                                         price = live_price(Stock_samco)
@@ -481,16 +481,17 @@ try:
                                             if order_status_dict(dict_PO_2)["orderStatus"] == "EXECUTED":
                                                 printt_telegram('SL hit SELL EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO_2)["orderDetails"]["avgExecutionPrice"])
                                                 break
-                                        square_off(zero_target)
-                                        if done == 1:
-                                            done = 0
+                                        if time_exceed(14, 50, 0, 0):
+                                            PO_1 = samco.place_order(body=PO_body('sell', 'limit', str(0.05 * math.ceil((zero_target * avg) / 0.05)), order_type))
+                                            print(PO_1)
+                                            printt_telegram('SELL order may be Auto square off as time is two fifty ')
                                             break
-                                        if time_exceed(15, 45, 0, 0):
-                                            printt_telegram('SELL order may be Auto square off as time is three thirty ')
+                                        if square_off(zero_target) == 1:
                                             break
                                     break
                         stochRSI = 50
-except Exception:
+except Exception as e:
+    print(e)
     printt_telegram('ERROR ERROR')
 
 print('program ended')
