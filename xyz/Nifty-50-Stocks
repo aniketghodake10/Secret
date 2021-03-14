@@ -7,3 +7,14 @@ My-Favourite Stocks other than Nifty-50
 
 None
 
+def samco_5m_candle_data(tickerr):
+    today = dt.today()
+    yesterday = str(today - td(days = 2))[:19]
+    headers = {'Accept': 'application/json','x-session-token': login['sessionToken']}
+
+    r = requests.get('https://api.stocknote.com/intraday/candleData', params={'symbolName': tickerr,  'fromDate': yesterday, 'interval': '5'}, headers = headers)
+
+    r = eval(str(r.json()))
+    candle = r['intradayCandleData']
+    df = pd.DataFrame(candle)
+    return df
