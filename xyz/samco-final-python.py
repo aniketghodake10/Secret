@@ -12,7 +12,8 @@ import requests
 # from random_user_agent.user_agent import UserAgent
 # from random_user_agent.params import SoftwareName, OperatingSystem
 import time
-# from threading import *
+import os
+from threading import *
 
 #---     FUNCTIONS  ---
 
@@ -31,7 +32,6 @@ zero_last_confirmation_3 = 1.0015
 
 conf = 0
 exceed = 0
-placeo = 0
 time_m_min = 4
 time_m_sec = 25
 
@@ -76,9 +76,9 @@ def stochrsi_K(tickerr, period: int = 14, smoothK: int = 3, smoothD: int = 3):
         # stochrsii_D = stochrsii_K.rolling(smoothD).mean()
         print('.              .')
 
-        return stochrsii_K[-1], df_5[-6:]
+        return stochrsii_K[-1]
     else:
-        return 50,50
+        return 50
 
 
 def ohlc_data(tickerr):
@@ -302,6 +302,97 @@ def square_off(a):
                             break
                     break
     return done
+
+
+def confirmation(Stock,stochRSI):
+    Stock_samco = Stock[:-3]
+    conf_list = []
+    placeo=0
+    global amount,hundred_rejection,hundred_last_confirmation,hundred_last_confirmation_2,hundred_last_confirmation_3,\
+        time_1,time_m_min,time_m_sec,zero_rejection,zero_last_confirmation,zero_last_confirmation_2,\
+        zero_last_confirmation_3
+    while stochRSI > 99:
+        cond(1,15,23)
+        df_ltp, price_open, df_low, df_high, check_low, check_high = ohlc_data(Stock)
+        if df_ltp == None:
+            break
+        qty = math.ceil(amount / (1.01 * price_open))
+        qty = str(qty)
+        printt_telegram('price_open is ' + str(price_open))
+        while True:
+            price = live_price(Stock_samco)
+            if check_high >= hundred_rejection * price_open or price >= hundred_rejection * price_open:
+                placeo = 1
+                printt_telegram('first condition satisfied')
+                break
+            if df_high >= hundred_rejection * df_ltp:
+                placeo = 1
+                printt_telegram('first_1 condition satisfied')
+                break
+            if time_exceed(time_1.hour, time_1.minute + time_m_min, time_1.second + time_m_sec, time_1.microsecond):
+                printt_telegram('trade cancelled as four minutes are up')
+                break
+        cond(4, 30, 55)
+        _, _, _, _, check_low2, _ = ohlc_data(Stock)
+        if check_low2 == None:
+            break
+        print('check low after four minutes is ', check_low2)
+        cond(4, 57, 58)
+        price = live_price(Stock_samco)
+        if price > hundred_last_confirmation * price_open or price < hundred_last_confirmation_2 * price_open or price * hundred_last_confirmation_3 > check_low2:
+            printt_telegram('Second condition failed')
+            placeo = 0
+        if placeo == 1 and not conf_list:
+            conf_list.append(Stock_samco)
+            conf_list.append(price_open)
+            conf_list.append(qty)
+            conf_list.append(stochRSI)
+            if os.stat('confirmation.txt').st_size == 0:
+                with open('confirmation.txt', 'w') as f:
+                    f.write(str(conf_list))
+        stochRSI=50
+
+    while stochRSI < 1:
+        cond(1, 15, 23)
+        df_ltp, price_open, df_low, df_high, check_low, check_high = ohlc_data(Stock)
+        if df_ltp == None:
+            break
+        qty = math.ceil(amount / (1.01 * price_open))
+        qty = str(qty)
+        printt_telegram('price_open is ' + str(price_open))
+        while True:
+            price = live_price(Stock_samco)
+            if check_low <= zero_rejection * price_open or price <= zero_rejection * price_open:
+                placeo = 1
+                printt_telegram('first condition satisfied')
+                break
+            if df_low <= zero_rejection * df_ltp:
+                placeo = 1
+                printt_telegram('first_1 condition satisfied')
+                break
+            if time_exceed(time_1.hour, time_1.minute + time_m_min, time_1.second + time_m_sec, time_1.microsecond):
+                printt_telegram('trade cancelled as four minutes are up')
+                break
+        cond(4, 30, 55)
+        _, _, _, _, _, check_high2 = ohlc_data(Stock)
+        if check_high2 == None:
+            break
+        print('check high after four minutes is ', check_high2)
+        cond(4, 57, 58)
+        price = live_price(Stock_samco)
+        if price < zero_last_confirmation * price_open or price > zero_last_confirmation_2 * price_open or price * zero_last_confirmation_3 < check_high2:
+            printt_telegram('Second condition failed')
+            placeo = 0
+        if placeo == 1 and not conf_list:
+            conf_list.append(Stock_samco)
+            conf_list.append(price_open)
+            conf_list.append(qty)
+            conf_list.append(stochRSI)
+            if os.stat('confirmation.txt').st_size == 0:
+                with open('confirmation.txt', 'w') as f:
+                    f.write(str(conf_list))
+        stochRSI = 50
+
 #---     FUNCTIONS  ---
 
 
@@ -338,7 +429,6 @@ try:
     for i in Stock_samco1:
         j = i + '.NS'
         Stock1.append(j)
-    dict_Stock2 = dict(zip(Stock1, Stock_samco1))
 
     startt_year = dt.now().year
     startt_month = dt.now().month
@@ -362,134 +452,81 @@ try:
                 cond(0, 15, 23)
                 time_1 = dt.now()
                 printt_telegram('checking stochRSI NEW Iteration')
+                Stock_list = []
                 for Stock2 in Stock1:
-                    stochRSI, df_last_5_values = stochrsi_K(Stock2)
-                    stochRSI = float('{:.2f}'.format(100 * stochRSI))
-                    if stochRSI > 99 or stochRSI < 1:
-                        Stock = Stock2
-                        Stock_samco = dict_Stock2[Stock]
-                        break
+                    stochRSII = stochrsi_K(Stock2)
+                    stochRSII = float('{:.2f}'.format(100 * stochRSII))
+                    if stochRSII > 99 or stochRSII < 1:
+                        list1 = []
+                        list1.append(Stock2)
+                        list1.append(stochRSII)
+                        Stock_list.append(list1)
 
-                if stochRSI > 99 or stochRSI < 1:
-                    print(df_last_5_values)
-                    printt_telegram('WEoooooo WE got the Stock ---' + Stock_samco + '----' + 'stochRSI is   ' + str(stochRSI))
-                    cond(1, 15, 25)
+                if Stock_list:
+                    for i,j in Stock_list:
+                        printt_telegram('WEoooooo WE got the Stock ---' + i[:-3] + '----' + 'stochRSI is   ' + str(j))
+                        t1=Thread(target=confirmation, args=(i,j))
+                        t1.start()
+                    cond(4, 58, 59)
+                    if os.stat('confirmation.txt').st_size != 0:
+                        with open('confirmation.txt', 'w') as f:
+                            readd = a = eval(f.read())
+                        Stock_samco, price_open, qty, stochRSI = readd[0], readd[1], readd[2], readd[3]
+                        printt_telegram('All conditions satisfied')
 
-                    while stochRSI > 99 and order_type != 'cnc':
-                        df_ltp, price_open, df_low, df_high, check_low, check_high = ohlc_data(Stock)
-                        if df_ltp == None:
-                            break
-                        qty = math.ceil(amount / (1.01 * price_open))
-                        qty = str(qty)
-                        printt_telegram('price_open is ' + str(price_open))
+                    while os.stat('confirmation.txt').st_size != 0 and stochRSI > 99 and order_type != 'cnc':
+                        with open('confirmation.txt', 'w') as f:
+                            pass
+                        PO = samco.place_order(body=PO_body('sell', 'market', 'na', order_type))
+                        dict_PO = eval(PO)
+                        avg = float('{:.2f}'.format(float(order_status_dict(dict_PO)["orderDetails"]["avgExecutionPrice"])))
                         while True:
-                            price = live_price(Stock_samco)
-                            if check_high >= hundred_rejection * price_open or price >= hundred_rejection * price_open:
-                                placeo = 1
-                                printt_telegram('first condition satisfied')
-                                break
-                            if df_high >= hundred_rejection * df_ltp:
-                                placeo = 1
-                                printt_telegram('first_1 condition satisfied')
-                                break
-                            if time_exceed(time_1.hour, time_1.minute + time_m_min, time_1.second + time_m_sec,time_1.microsecond):
-                                printt_telegram('trade cancelled as four minutes are up')
-                                break
-                        cond(4, 30, 55)
-                        _, _, _, _, check_low2, _ = ohlc_data(Stock)
-                        if check_low2 == None:
-                            break
-                        print('check low after four minutes is ', check_low2)
-                        cond(4, 58, 59)
-                        price = live_price(Stock_samco)
-                        if price > hundred_last_confirmation * price_open or price < hundred_last_confirmation_2 * price_open or price * hundred_last_confirmation_3 > check_low2:
-                            printt_telegram('Second condition failed')
-                            placeo = 0
-
-                        if placeo == 1:
-                            placeo = 0
-                            PO = samco.place_order(body=PO_body('sell', 'market', 'na', order_type))
-                            dict_PO = eval(PO)
-                            print('All conditions satisfied')
-                            avg = float('{:.2f}'.format(float(order_status_dict(dict_PO)["orderDetails"]["avgExecutionPrice"])))
-                            while True:
-                                if order_status_dict(dict_PO)["orderStatus"] == "EXECUTED":
-                                    printt_telegram('SELL EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO)["orderDetails"]["avgExecutionPrice"])
-                                    PO_2 = samco.place_order(body=PO_body('buy', 'slm', str(0.05 * math.ceil((hundred_SL * avg) / 0.05)),order_type))
-                                    dict_PO_2 = eval(PO_2)
-                                    while True:
-                                        price = live_price(Stock_samco)
-                                        if price > 0.05 * math.ceil((hundred_SL * avg) / 0.05):
-                                            if order_status_dict(dict_PO_2)["orderStatus"] == "EXECUTED":
-                                                printt_telegram(' SL hit BUY EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO_2)["orderDetails"]["avgExecutionPrice"])
-                                                break
-                                        if time_exceed(14, 50, 0, 0):
-                                            PO_1 = samco.place_order(body=PO_body('buy', 'limit', str(0.05 * math.ceil((hundred_target * avg) / 0.05)), order_type))
-                                            print(PO_1)
-                                            printt_telegram('BUY order may be Auto square off as time is two fifty ')
+                            if order_status_dict(dict_PO)["orderStatus"] == "EXECUTED":
+                                printt_telegram('SELL EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO)["orderDetails"]["avgExecutionPrice"])
+                                PO_2 = samco.place_order(body=PO_body('buy', 'slm', str(0.05 * math.ceil((hundred_SL * avg) / 0.05)),order_type))
+                                dict_PO_2 = eval(PO_2)
+                                while True:
+                                    price = live_price(Stock_samco)
+                                    if price > 0.05 * math.ceil((hundred_SL * avg) / 0.05):
+                                        if order_status_dict(dict_PO_2)["orderStatus"] == "EXECUTED":
+                                            printt_telegram(' SL hit BUY EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO_2)["orderDetails"]["avgExecutionPrice"])
                                             break
-                                        if square_off(hundred_target) == 1:
-                                            break
-                                    break
-                        stochRSI = 50
+                                    if time_exceed(14, 50, 0, 0):
+                                        PO_1 = samco.place_order(body=PO_body('buy', 'limit', str(0.05 * math.ceil((hundred_target * avg) / 0.05)), order_type))
+                                        print(PO_1)
+                                        printt_telegram('BUY order may be Auto square off as time is two fifty ')
+                                        break
+                                    if square_off(hundred_target) == 1:
+                                        break
+                                break
+                    stochRSI = 50
 
-                    while stochRSI < 1:
-                        df_ltp, price_open, df_low, df_high, check_low, check_high = ohlc_data(Stock)
-                        if df_ltp == None:
-                            break
-                        qty = math.ceil(amount / (1.01 * price_open))
-                        qty = str(qty)
-                        printt_telegram('price_open is ' + str(price_open))
+                    while os.stat('confirmation.txt').st_size != 0 and stochRSI < 1:
+                        with open('confirmation.txt', 'w') as f:
+                            pass
+                        PO = samco.place_order(body=PO_body('buy', 'market', 'na', order_type))
+                        dict_PO = eval(PO)
+                        avg = float('{:.2f}'.format(float(order_status_dict(dict_PO)["orderDetails"]["avgExecutionPrice"])))
                         while True:
-                            price = live_price(Stock_samco)
-                            if check_low <= zero_rejection * price_open or price <= zero_rejection * price_open:
-                                placeo = 1
-                                printt_telegram('first condition satisfied')
-                                break
-                            if df_low <= zero_rejection * df_ltp:
-                                placeo = 1
-                                printt_telegram('first_1 condition satisfied')
-                                break
-                            if time_exceed(time_1.hour, time_1.minute + time_m_min, time_1.second + time_m_sec,time_1.microsecond):
-                                printt_telegram('trade cancelled as four minutes are up')
-                                break
-                        cond(4, 30, 55)
-                        _, _, _, _, _, check_high2 = ohlc_data(Stock)
-                        if check_high2 == None:
-                            break
-                        print('check high after four minutes is ', check_high2)
-                        cond(4, 58, 59)
-                        price = live_price(Stock_samco)
-                        if price < zero_last_confirmation * price_open or price > zero_last_confirmation_2 * price_open or price * zero_last_confirmation_3 < check_high2:
-                            printt_telegram('Second condition failed')
-                            placeo = 0
-
-                        if placeo == 1:
-                            placeo = 0
-                            PO = samco.place_order(body=PO_body('buy', 'market', 'na', order_type))
-                            dict_PO = eval(PO)
-                            print('All conditions satisfied')
-                            avg = float('{:.2f}'.format(float(order_status_dict(dict_PO)["orderDetails"]["avgExecutionPrice"])))
-                            while True:
-                                if order_status_dict(dict_PO)["orderStatus"] == "EXECUTED":
-                                    printt_telegram('BUY EXECUTED   avgExecutionPrice is ' + str(avg))
-                                    PO_2 = samco.place_order(body=PO_body('sell', 'slm', str(0.05 * math.ceil((zero_SL * avg) / 0.05)),order_type))
-                                    dict_PO_2 = eval(PO_2)
-                                    while True:
-                                        price = live_price(Stock_samco)
-                                        if price < 0.05 * math.ceil((zero_SL * avg) / 0.05):
-                                            if order_status_dict(dict_PO_2)["orderStatus"] == "EXECUTED":
-                                                printt_telegram('SL hit SELL EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO_2)["orderDetails"]["avgExecutionPrice"])
-                                                break
-                                        if time_exceed(14, 50, 0, 0):
-                                            PO_1 = samco.place_order(body=PO_body('sell', 'limit', str(0.05 * math.ceil((zero_target * avg) / 0.05)), order_type))
-                                            print(PO_1)
-                                            printt_telegram('SELL order may be Auto square off as time is two fifty ')
+                            if order_status_dict(dict_PO)["orderStatus"] == "EXECUTED":
+                                printt_telegram('BUY EXECUTED   avgExecutionPrice is ' + str(avg))
+                                PO_2 = samco.place_order(body=PO_body('sell', 'slm', str(0.05 * math.ceil((zero_SL * avg) / 0.05)),order_type))
+                                dict_PO_2 = eval(PO_2)
+                                while True:
+                                    price = live_price(Stock_samco)
+                                    if price < 0.05 * math.ceil((zero_SL * avg) / 0.05):
+                                        if order_status_dict(dict_PO_2)["orderStatus"] == "EXECUTED":
+                                            printt_telegram('SL hit SELL EXECUTED   avgExecutionPrice is ' +order_status_dict(dict_PO_2)["orderDetails"]["avgExecutionPrice"])
                                             break
-                                        if square_off(zero_target) == 1:
-                                            break
-                                    break
-                        stochRSI = 50
+                                    if time_exceed(14, 50, 0, 0):
+                                        PO_1 = samco.place_order(body=PO_body('sell', 'limit', str(0.05 * math.ceil((zero_target * avg) / 0.05)), order_type))
+                                        print(PO_1)
+                                        printt_telegram('SELL order may be Auto square off as time is two fifty ')
+                                        break
+                                    if square_off(zero_target) == 1:
+                                        break
+                                break
+                    stochRSI = 50
 except Exception as e:
     print(e)
     printt_telegram('ERROR ERROR')
