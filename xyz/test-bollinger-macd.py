@@ -43,8 +43,9 @@ def time_exceed(a,b,c,d):
         if h>=d:
             return True
 
-def bollinger_macd(stocklist, period: int = 14):
+def bollinger_macd(stocklist):
     conf = 0
+    period_rsi = 14
     period_bollinger = 20
     multiplier = 2
 
@@ -71,41 +72,41 @@ def bollinger_macd(stocklist, period: int = 14):
     #             break
     #     if time_exceed(time_1.hour, time_1.minute, time_1.second + time_m_sec, time_1.microsecond):
     #         break
-    df_5 = yf.download(tickers=st, period='2d', interval='5m')
+    df_5 = yf.download(tickers=st, period='3d', interval='5m')
     conf=1
+    # df_6 = df_5[:-1]
+    df_6 = df_5[:-8]
     if conf == 1:
         conf = 0
         baddy = 0
         stock = 'none'
-        for i in stocklist:
-            # df_6 = df_5[:-1]
-            df_6 = df_5
-            df_close = df_6['Close'][i]
-            df_open = df_6['Open'][i]
-            df_high = df_6['High'][i]
-            df_low = df_6['Low'][i]
+        for stk in stocklist:
+            df_close = df_6['Close'][stk]
+            df_open = df_6['Open'][stk]
+            df_high = df_6['High'][stk]
+            df_low = df_6['Low'][stk]
             delta = df_close.diff(1)
             delta.dropna(inplace=True)
             gain, loss = delta.copy(), delta.copy()
             gain[gain < 0] = 0
             loss[loss > 0] = 0
 
-            _gain = gain.ewm(com=(period - 1), min_periods=period).mean()
-            _loss = loss.abs().ewm(com=(period - 1), min_periods=period).mean()
+            _gain = gain.ewm(com=(period_rsi - 1), min_periods=period_rsi).mean()
+            _loss = loss.abs().ewm(com=(period_rsi - 1), min_periods=period_rsi).mean()
 
             RS = _gain / _loss
             rsii = 100 - (100 / (1 + RS))
 
             MiddleBand = df_close.rolling(period_bollinger).mean()
-            UpperBand = MiddleBand + df_close.rolling(period).std() * multiplier
-            LowerBand = MiddleBand - df_close.rolling(period).std() * multiplier
+            UpperBand = MiddleBand + df_close.rolling(period_bollinger).std() * multiplier
+            LowerBand = MiddleBand - df_close.rolling(period_bollinger).std() * multiplier
 
-            macd = df_close.ewm(span=26, adjust=False).mean() - df_close.ewm(span=12, adjust=False).mean()
+            macd = df_close.ewm(span=12, adjust=False).mean() - df_close.ewm(span=26, adjust=False).mean()
             signal = macd.ewm(span=9, adjust=False).mean()
 
             print('.              .')
 
-            if df_close[-1] >= 1.001 * UpperBand[-1]:
+            if df_close[-1] >= 1.0005 * UpperBand[-1]:
                 if df_open[-1] <= UpperBand[-1] and df_open[-1] >= MiddleBand[-1] and macd[-1] > 0 and macd[-1] > \
                         signal[-1] and rsii[-1] > 56.5 and rsii[-1] < 65:
                     baddy = 1
@@ -114,10 +115,10 @@ def bollinger_macd(stocklist, period: int = 14):
                             baddy = 0
                             break
                     for i in range(2, 6):
-                        if df_close[-1 * i] >= MiddleBand[-1 * i]:
+                        if df_close[-1 * i] < MiddleBand[-1 * i]:
                             baddy = 0
                             break
-            if df_close[-1] <= 0.999 * LowerBand[-1]:
+            if df_close[-1] <= 0.9995 * LowerBand[-1]:
                 if df_open[-1] >= LowerBand[-1] and df_open[-1] <= MiddleBand[-1] and macd[-1] < 0 and macd[-1] < \
                         signal[-1] and rsii[-1] > 35 and rsii[-1] < 43:
                     baddy = 1
@@ -126,11 +127,11 @@ def bollinger_macd(stocklist, period: int = 14):
                             baddy = 0
                             break
                     for i in range(2, 6):
-                        if df_close[-1 * i] <= MiddleBand[-1 * i]:
+                        if df_close[-1 * i] > MiddleBand[-1 * i]:
                             baddy = 0
                             break
             if baddy == 1:
-                stock = i
+                stock = stk
                 break
 
         return stock
