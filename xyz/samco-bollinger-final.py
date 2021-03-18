@@ -125,9 +125,8 @@ def cond(a,b,c):
 
 
 def samco_1m_open(tickerr):
-    global login
-    today = dt.now()
-    yesterday = str(today - td(minutes = today.minute-(today.minute % 5)-1))[:19]
+    global df,login
+    yesterday = str(dt.strptime(df['dateTime'].iloc[-1][:19], '%Y-%m-%d %H:%M:%S') - td(seconds=30))[:19]
     headers = {'Accept': 'application/json','x-session-token': login['sessionToken']}
 
     r = requests.get('https://api.stocknote.com/intraday/candleData', params={'symbolName': tickerr,  'fromDate': yesterday, 'interval': '1'}, headers = headers)
