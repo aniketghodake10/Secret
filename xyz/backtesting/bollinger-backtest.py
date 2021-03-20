@@ -102,9 +102,9 @@ def bolling_macd(yeyy):
 
 Total,Profit,Loss,Neutral = 0,0,0,0
 
-df_main = pd.read_csv('dfff_samco.csv')
+df_main = pd.read_csv('dfff_samco100.csv')
 
-with open('stock_list.txt', 'r') as f:
+with open('stock_list100.txt', 'r') as f:
     stocklist = f.read()
 stocklist = eval(stocklist)
 
