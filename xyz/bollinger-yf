@@ -53,14 +53,14 @@ def ohlc_5m():
         dff = yf.download(tickers=a[0], period='2d', interval='5m')
         ajj = dt.now().minute
         if ajj % 5 != 0:
-            if float(str(dff.index[-1])[14:16]) == ajj and float(str(dff.index[-2])[14:16]) == ajj - ajj % 5 and float(
+            if float(str(dff.index[-2])[14:16]) == ajj - ajj % 5 and float(
                     str(dff.index[-3])[14:16]) == ajj - ajj % 5 - 5:
-                dff = dff[:-2]
                 conf = 1
                 break
         if time_exceed(time_1.hour, time_1.minute, time_1.second + time_m_sec, time_1.microsecond):
+            print(dff)
             break
-
+    dff = dff[:-2]
     dff.rename(columns={'Open': 'open' + a[0], 'High': 'high' + a[0], 'Low': 'low' + a[0],
                        'Close': 'close' + a[0], 'Volume': 'volume' + a[0]}, inplace=True)
 
@@ -77,20 +77,19 @@ def ohlc_5m():
             df1 = yf.download(tickers=i, period='2d', interval='5m')
             ajj = dt.now().minute
             if ajj % 5 != 0:
-                if float(str(df1.index[-1])[14:16]) == ajj and float(
-                        str(df1.index[-2])[14:16]) == ajj - ajj % 5 and float(
+                if float(str(df1.index[-2])[14:16]) == ajj - ajj % 5 and float(
                         str(df1.index[-3])[14:16]) == ajj - ajj % 5 - 5:
-                    df1 = df1[:-2]
                     confs = 1
                     break
             if time_exceed(time_1.hour, time_1.minute, time_1.second + time_m_sec, time_1.microsecond):
                 stocklist.remove(i)
+                print(df1)
                 break
 
         if confs == 0:
             print('yf_1 5m candle glitch')
             continue
-
+        df1 = df1[:-2]
         list1 = df1['Open'].tolist()
         list2 = df1['High'].tolist()
         list3 = df1['Low'].tolist()
