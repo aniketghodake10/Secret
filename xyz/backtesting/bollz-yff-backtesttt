@@ -1,0 +1,277 @@
+import math
+import pandas as pd
+from datetime import datetime as dt
+from datetime import timedelta as td
+from snapi_py_client.snapi_bridge import StocknoteAPIPythonBridge
+import requests
+import time
+import configparser as cfg
+import yfinance as yf
+
+def read_token_from_config_file(config, key):
+    parser = cfg.ConfigParser()
+    parser.read(config)
+    return parser.get('creds', key)
+
+def bolling_macd(yeyy,sl,trgett):
+    global df_main,Stock_samco1,stocklist,pandl,dattt
+
+    period_rsi = 14
+    period_bollinger = 20
+    multiplier1 = 2
+    multiplier2 = 2
+
+    df = df_main.iloc[:-1 * yeyy]
+
+    outputt,profitt,losss,neutral = [], [],[],[]
+    for stk in stocklist:
+        baddy = 0
+        df_close = df['Close'][stk]
+        df_open = df['Open'][stk]
+        df_high = df['High'][stk]
+        df_low = df['Low'][stk]
+        delta = df_close.diff(1)
+        delta.dropna(inplace=True)
+        gain, loss = delta.copy(), delta.copy()
+        gain[gain < 0] = 0
+        loss[loss > 0] = 0
+
+        _gain = gain.ewm(com=(period_rsi - 1), min_periods=period_rsi).mean()
+        _loss = loss.abs().ewm(com=(period_rsi - 1), min_periods=period_rsi).mean()
+
+        RS = _gain / _loss
+        rsii = 100 - (100 / (1 + RS))
+
+        MiddleBand = df_close.rolling(period_bollinger).mean()
+        UpperBand = MiddleBand + df_close.rolling(period_bollinger).std() * multiplier1
+        LowerBand = MiddleBand - df_close.rolling(period_bollinger).std() * multiplier2
+        BandDiffer = (UpperBand - LowerBand) / MiddleBand
+
+        macd = df_close.ewm(span=12, adjust=False).mean() - df_close.ewm(span=26, adjust=False).mean()
+        signal = macd.ewm(span=9, adjust=False).mean()
+
+        if df_close.iloc[-1] > UpperBand.iloc[-1]:
+            if macd.iloc[-1] > macd.iloc[-2] and macd.iloc[-1] >= 0 and macd.iloc[-2] > macd.iloc[-3] and macd.iloc[-1] >= signal.iloc[-1] and rsii.iloc[-1] > 56 and rsii.iloc[-1] < 66:
+                baddy = 1
+                for i in range(2, 9):
+                    if df_low.iloc[-1 * i] < LowerBand.iloc[-1 * i] or df_high.iloc[-1 * i] > UpperBand.iloc[-1 * i] or BandDiffer.iloc[
+                        -1 * i] > 0.008:
+                        baddy = 0
+                        break
+                for i in range(9, 11):
+                    if df_open.iloc[-1 * i] < LowerBand.iloc[-1 * i] or df_close.iloc[-1 * i] > UpperBand.iloc[-1 * i] or BandDiffer.iloc[
+                        -1 * i] > 0.008:
+                        baddy = 0
+                        break
+        if df_close.iloc[-1] < LowerBand.iloc[-1]:
+            if macd.iloc[-1] < macd.iloc[-2] and macd.iloc[-1] <= 0 and macd.iloc[-2] < macd.iloc[-3] and macd.iloc[-1] <= signal.iloc[-1] and rsii.iloc[-1] < 44 and rsii.iloc[-1] > 35:
+                baddy = 2
+                for i in range(2, 9):
+                    if df_low.iloc[-1 * i] < LowerBand.iloc[-1 * i] or df_high.iloc[-1 * i] > UpperBand.iloc[-1 * i] or BandDiffer.iloc[
+                        -1 * i] > 0.008:
+                        baddy = 0
+                        break
+                for i in range(9, 11):
+                    if df_close.iloc[-1 * i] < LowerBand.iloc[-1 * i] or df_open.iloc[-1 * i] > UpperBand.iloc[-1 * i] or BandDiffer.iloc[
+                        -1 * i] > 0.008:
+                        baddy = 0
+                        break
+
+        aniket = 'none'
+        if baddy == 1:
+            jay = 0
+            trr = trgett
+            godatt = df.index[-1] + td(minutes=5)
+            df_1m_samco = samco.get_intraday_candle_data(symbol_name=stk[:-3], exchange=samco.EXCHANGE_NSE,
+                                                     from_date=str(godatt)[:19], to_date=str(godatt)[:10] + ' 15:29:00')
+            df_1m_samco = eval(df_1m_samco)
+            data = df_1m_samco["intradayCandleData"]
+            df_1m_samco = pd.DataFrame(data)
+
+            df_1m_samco['open'] = pd.to_numeric(df_1m_samco['open'], downcast='float')
+            df_1m_samco['low'] = pd.to_numeric(df_1m_samco['low'], downcast='float')
+            df_1m_samco['high'] = pd.to_numeric(df_1m_samco['high'], downcast='float')
+            df_1m_samco['close'] = pd.to_numeric(df_1m_samco['close'], downcast='float')
+            df_1m_samco['volume'] = pd.to_numeric(df_1m_samco['volume'], downcast='float')
+            for i in range(len(df_1m_samco),0,-1):
+                print('trr is',trr)
+                if aniket[0] == 'p' and jay != 1.0025:
+                    if trr == 1.005:
+                        if df_1m_samco['low'].iloc[-1 * i] <= (trr - 0.0047) * df_close.iloc[-1]:
+                            aniket = 'p' + str(trr - 0.0047) + stk + 'up'
+                            print(aniket)
+                            break
+                    if trr != 1.005:
+                        if df_1m_samco['low'].iloc[-1 * i] <= (trr - 0.005) * df_close.iloc[-1]:
+                            aniket = 'p' + str(trr - 0.005) + stk + 'up'
+                            print(aniket)
+                            break
+                if  df_1m_samco['high'].iloc[-1 * i] >= (trr) * df_close.iloc[-1]:
+                    jay = trr
+                    tl = trr
+                    for k in range(1, 25):
+                        k = k * 0.0025
+                        trrk = trr + k
+                        if df_1m_samco['high'].iloc[-1 * i] >= (trrk) * df_close.iloc[-1]:
+                            aniket = 'p' + str(trrk) + stk + 'up'
+                            print(aniket)
+                            tl = trrk
+                    if tl == 1.0025:
+                        if df_1m_samco['close'].iloc[-1 * i] <= (tl - 0.0022) * df_close.iloc[-1]:
+                            aniket = 'p' + str(tl - 0.0022) + stk + 'up'
+                            print(aniket)
+                            break
+                    if tl != 1.0025:
+                        if df_1m_samco['close'].iloc[-1 * i] <= (tl - 0.0025) * df_close.iloc[-1]:
+                            aniket = 'p' + str(tl - 0.0025) + stk + 'up'
+                            print(aniket)
+                            break
+                    trr = tl + 0.0025
+                    print('tl is',tl)
+
+                if aniket[0] != 'p':
+                    if df_1m_samco['low'].iloc[-1 * i] <= (2-sl) * df_close.iloc[-1]:
+                        aniket = 'loss'+stk + 'up'
+                        break
+                    else:
+                         aniket = 'neut'+stk+'up'
+
+        if baddy == 2:
+            jay = 0
+            trr = 2- trgett
+            godatt = df.index[-1] + td(minutes=5)
+            df_1m_samco = samco.get_intraday_candle_data(symbol_name=stk[:-3], exchange=samco.EXCHANGE_NSE,
+                                                         from_date=str(godatt)[:19],
+                                                         to_date=str(godatt)[:10] + ' 15:29:00')
+            df_1m_samco = eval(df_1m_samco)
+            data = df_1m_samco["intradayCandleData"]
+            df_1m_samco = pd.DataFrame(data)
+
+            df_1m_samco['open'] = pd.to_numeric(df_1m_samco['open'], downcast='float')
+            df_1m_samco['low'] = pd.to_numeric(df_1m_samco['low'], downcast='float')
+            df_1m_samco['high'] = pd.to_numeric(df_1m_samco['high'], downcast='float')
+            df_1m_samco['close'] = pd.to_numeric(df_1m_samco['close'], downcast='float')
+            df_1m_samco['volume'] = pd.to_numeric(df_1m_samco['volume'], downcast='float')
+            for i in range(len(df_1m_samco),0,-1):
+                print('trr is', trr)
+                if aniket[0] == 'p' and jay != 0.9975:
+                    if trr == 0.995:
+                        if df_1m_samco['high'].iloc[-1 * i] >= (trr + 0.0047) * df_close.iloc[-1]:
+                            aniket = 'p' + str(trr + 0.0047) + stk + 'do'
+                            print(aniket)
+                            break
+                    if trr != 0.995:
+                        if df_1m_samco['high'].iloc[-1 * i] >= (trr + 0.005) * df_close.iloc[-1]:
+                            aniket = 'p' + str(trr + 0.005) + stk + 'do'
+                            print(aniket)
+                            break
+                if df_1m_samco['low'].iloc[-1 * i] <= (trr) * df_close.iloc[-1]:
+                    jay = trr
+                    tl = trr
+                    for k in range(1, 25):
+                        k = k * 0.0025
+                        trrk = trr - k
+                        if df_1m_samco['low'].iloc[-1 * i] <= (trrk) * df_close.iloc[-1]:
+                            aniket = 'p' + str(trrk) + stk + 'do'
+                            print(aniket)
+                            tl = trrk
+                    if tl == 0.9975:
+                        if df_1m_samco['close'].iloc[-1 * i] >= (tl + 0.0022) * df_close.iloc[-1]:
+                            aniket = 'p' + str(tl + 0.0022) + stk + 'do'
+                            print(aniket)
+                            break
+                    if tl != 0.9975:
+                        if df_1m_samco['close'].iloc[-1 * i] >= (tl + 0.0025) * df_close.iloc[-1]:
+                            aniket = 'p' + str(tl + 0.0025) + stk + 'do'
+                            print(aniket)
+                            break
+                    trr = tl - 0.0025
+                    print('tl is', tl)
+
+                if aniket[0] != 'p':
+                    if df_1m_samco['high'].iloc[-1 * i] >= (sl) * df_close.iloc[-1]:
+                        aniket = 'loss'+stk + 'do'
+                        break
+                    else:
+                        aniket = 'neut'+stk+'do'
+
+        if aniket[0] == 'p':
+            if aniket[-2:] == 'up':
+                profitt.append(float('{:.2f}'.format((float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)])))-1)*100)))
+                pandl = pandl + float('{:.2f}'.format((float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)])))-1)*100))
+            if aniket[-2:] == 'do':
+                profitt.append(float('{:.2f}'.format((1-float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)]))))*100)))
+                pandl = pandl + float('{:.2f}'.format((1-float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)]))))*100))
+        if aniket[:4] == 'loss':
+            losss.append(aniket)
+            pandl = pandl - 0.31
+        if aniket[:4] == 'neut':
+            neutral.append(aniket)
+        if aniket!='none':
+            outputt.append(aniket)
+            dattt = str(df.index[-1])[:10]
+            break
+    if len(outputt) != 0:
+        print(outputt, profitt, df.index[-1])
+    return len(outputt),len(profitt),len(losss),len(neutral)
+
+
+def flsr(a):
+    return float('{:.5f}'.format(float(a)))
+
+samco = StocknoteAPIPythonBridge()
+userId, password, yob = read_token_from_config_file("login_data.cfg", "userId"), read_token_from_config_file(
+        "login_data.cfg", "password"), read_token_from_config_file("login_data.cfg", "yob")
+login = samco.login(body={"userId": userId, 'password': password, 'yob': yob})
+print('Login Details\n', login)
+login = eval(login)
+samco.set_session_token(sessionToken=login['sessionToken'])
+
+
+csv_2=pd.read_csv('ind_nifty100list.csv')
+Stock_samco1=csv_2.loc[:, 'Symbol':'Symbol']
+Stock_samco1=Stock_samco1.Symbol
+Stock_samco1=Stock_samco1.tolist()
+Stock_samco1.remove('BAJFINANCE')
+Stock_samco1.insert(0,'BAJFINANCE')
+
+stocklist = []
+for i in Stock_samco1:
+    j = i + '.NS'
+    stocklist.append(j)
+
+st = str(stocklist)
+st = st[1:]
+st = st[:-1]
+st = st.replace('\'', '')
+st = st.replace(',', '')
+
+df_main = yf.download(tickers=st, start='2021-01-22', interval='5m')
+
+# ddays = int(input('Enter no. of days for backtesting'))
+ddays = 13
+ddays = ddays * 75 - 9
+llays = 12
+llays = llays * 75 + 18
+
+star = 0
+pandl = 0
+Total, Profit, Loss, Neutral = 0, 0, 0, 0
+dattt = '2020-01-01'
+print(dt.now())
+for i in range(ddays, llays, -1):
+    star = star + 1
+    if star >= 49 and star <= 75:
+        if star == 75:
+            star = 0
+        continue
+    v, b, n, m = bolling_macd(i, 1.0031, 1.0025)
+    Total = Total + v
+    Profit = Profit + b
+    Loss = Loss + n
+    Neutral = Neutral + m
+print('profit in % is ', pandl + Loss * 0.31)
+pandl = 1000 * pandl - Total * 90
+print(Total, Profit, Loss, Neutral)
+print('p&l is ', pandl)
+print(dt.now())
