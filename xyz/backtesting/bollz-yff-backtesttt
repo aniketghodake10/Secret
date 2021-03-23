@@ -13,7 +13,7 @@ def read_token_from_config_file(config, key):
     parser.read(config)
     return parser.get('creds', key)
 
-def bolling_macd(yeyy,sl,trgett):
+def bolling_macd(yeyy,sl,trgett,stepp,mintarget):
     global df_main,Stock_samco1,stocklist,pandl,dattt
 
     period_rsi = 14
@@ -94,32 +94,32 @@ def bolling_macd(yeyy,sl,trgett):
             df_1m_samco['volume'] = pd.to_numeric(df_1m_samco['volume'], downcast='float')
             for i in range(len(df_1m_samco),0,-1):
                 if aniket[0] == 'p':
-                    if trr == 1.005:
-                        if df_1m_samco['low'].iloc[-1 * i] <= flsr(trr - 0.0047) * df_close.iloc[-1]:
-                            aniket = 'p' + str(flsr(trr - 0.0047)) + stk + 'up'
+                    if trr == trgett+stepp:
+                        if df_1m_samco['low'].iloc[-1 * i] <= flsr(mintarget) * df_close.iloc[-1]:
+                            aniket = 'p' + str(flsr(mintarget)) + stk + 'up'
                             break
-                    if trr != 1.005:
-                        if df_1m_samco['low'].iloc[-1 * i] <= flsr(trr - 0.005) * df_close.iloc[-1]:
-                            aniket = 'p' + str(flsr(trr - 0.005)) + stk + 'up'
+                    if trr != trgett+stepp:
+                        if df_1m_samco['low'].iloc[-1 * i] <= flsr(trr - 2*stepp) * df_close.iloc[-1]:
+                            aniket = 'p' + str(flsr(trr - 2*stepp)) + stk + 'up'
                             break
                 if  df_1m_samco['high'].iloc[-1 * i] >= (trr) * df_close.iloc[-1]:
                     aniket = 'p' + str(trr) + stk + 'up'
                     tl = trr
                     for k in range(1, 25):
-                        k = flsr(k * 0.0025)
+                        k = flsr(k * stepp)
                         trrk = flsr(trr + k)
                         if df_1m_samco['high'].iloc[-1 * i] >= (trrk) * df_close.iloc[-1]:
                             aniket = 'p' + str(trrk) + stk + 'up'
                             tl = trrk
-                    if tl == 1.0025:
-                        if df_1m_samco['close'].iloc[-1 * i] <= flsr(tl - 0.0022) * df_close.iloc[-1]:
-                            aniket = 'p' + str(flsr(tl - 0.0022)) + stk + 'up'
+                    if tl == trgett:
+                        if df_1m_samco['close'].iloc[-1 * i] <= flsr(mintarget) * df_close.iloc[-1]:
+                            aniket = 'p' + str(flsr(mintarget)) + stk + 'up'
                             break
-                    if tl != 1.0025:
-                        if df_1m_samco['close'].iloc[-1 * i] <= flsr(tl - 0.0025) * df_close.iloc[-1]:
-                            aniket = 'p' + str(flsr(tl - 0.0025)) + stk + 'up'
+                    if tl != trgett:
+                        if df_1m_samco['close'].iloc[-1 * i] <= flsr(tl - stepp) * df_close.iloc[-1]:
+                            aniket = 'p' + str(flsr(tl - stepp)) + stk + 'up'
                             break
-                    trr = flsr(tl + 0.0025)
+                    trr = flsr(tl + stepp)
 
                 if aniket[0] != 'p':
                     if df_1m_samco['low'].iloc[-1 * i] <= flsr(2-sl) * df_close.iloc[-1]:
@@ -129,7 +129,9 @@ def bolling_macd(yeyy,sl,trgett):
                          aniket = 'neut'+stk+'up'
 
         if baddy == 2:
-            trr = flsr(2- trgett)
+            trgett = flsr(2 - trgett)
+            mintarget = flsr(2 - mintarget)
+            trr = trgett
             godatt = df.index[-1] + td(minutes=5)
             df_1m_samco = samco.get_intraday_candle_data(symbol_name=stk[:-3], exchange=samco.EXCHANGE_NSE,
                                                          from_date=str(godatt)[:19],
@@ -145,32 +147,32 @@ def bolling_macd(yeyy,sl,trgett):
             df_1m_samco['volume'] = pd.to_numeric(df_1m_samco['volume'], downcast='float')
             for i in range(len(df_1m_samco),0,-1):
                 if aniket[0] == 'p':
-                    if trr == 0.995:
-                        if df_1m_samco['high'].iloc[-1 * i] >= flsr(trr + 0.0047) * df_close.iloc[-1]:
-                            aniket = 'p' + str(flsr(trr + 0.0047)) + stk + 'do'
+                    if trr == flsr(trgett-stepp):
+                        if df_1m_samco['high'].iloc[-1 * i] >= flsr(mintarget) * df_close.iloc[-1]:
+                            aniket = 'p' + str(flsr(mintarget)) + stk + 'do'
                             break
-                    if trr != 0.995:
-                        if df_1m_samco['high'].iloc[-1 * i] >= flsr(trr + 0.005) * df_close.iloc[-1]:
-                            aniket = 'p' + str(flsr(trr + 0.005)) + stk + 'do'
+                    if trr != trgett-stepp:
+                        if df_1m_samco['high'].iloc[-1 * i] >= flsr(trr + 2*stepp) * df_close.iloc[-1]:
+                            aniket = 'p' + str(flsr(trr + 2*stepp)) + stk + 'do'
                             break
                 if df_1m_samco['low'].iloc[-1 * i] <= (trr) * df_close.iloc[-1]:
                     aniket = 'p' + str(trr) + stk + 'do'
                     tl = trr
                     for k in range(1, 25):
-                        k = flsr(k * 0.0025)
+                        k = flsr(k * stepp)
                         trrk = flsr(trr - k)
                         if df_1m_samco['low'].iloc[-1 * i] <= (trrk) * df_close.iloc[-1]:
                             aniket = 'p' + str(trrk) + stk + 'do'
                             tl = trrk
-                    if tl == 0.9975:
-                        if df_1m_samco['close'].iloc[-1 * i] >= flsr(tl + 0.0022) * df_close.iloc[-1]:
-                            aniket = 'p' + str(flsr(tl + 0.0022)) + stk + 'do'
+                    if tl == trgett:
+                        if df_1m_samco['close'].iloc[-1 * i] >= flsr(mintarget) * df_close.iloc[-1]:
+                            aniket = 'p' + str(flsr(mintarget)) + stk + 'do'
                             break
-                    if tl != 0.9975:
-                        if df_1m_samco['close'].iloc[-1 * i] >= flsr(tl + 0.0025) * df_close.iloc[-1]:
-                            aniket = 'p' + str(flsr(tl + 0.0025)) + stk + 'do'
+                    if tl != trgett:
+                        if df_1m_samco['close'].iloc[-1 * i] >= flsr(tl + stepp) * df_close.iloc[-1]:
+                            aniket = 'p' + str(flsr(tl + stepp)) + stk + 'do'
                             break
-                    trr = flsr(tl - 0.0025)
+                    trr = flsr(tl - stepp)
 
                 if aniket[0] != 'p':
                     if df_1m_samco['high'].iloc[-1 * i] >= (sl) * df_close.iloc[-1]:
@@ -230,12 +232,12 @@ st = st[:-1]
 st = st.replace('\'', '')
 st = st.replace(',', '')
 
-df_main = yf.download(tickers=st, start='2021-01-23', interval='5m')
+df_main = yf.download(tickers=st, start='2021-01-23', end= '2021-03-22',interval='5m')
 
 # ddays = int(input('Enter no. of days for backtesting'))
-ddays = 14
+ddays = 9
 ddays = ddays * 75 - 9
-llays = 0
+llays = 3
 llays = llays * 75 + 18
 
 star = 0
@@ -249,7 +251,7 @@ for i in range(ddays, llays, -1):
         if star == 75:
             star = 0
         continue
-    v, b, n, m = bolling_macd(i, 1.0031, 1.0025)
+    v, b, n, m = bolling_macd(i, 1.0055, 1.003, 0.003, 1.0025)
     Total = Total + v
     Profit = Profit + b
     Loss = Loss + n
