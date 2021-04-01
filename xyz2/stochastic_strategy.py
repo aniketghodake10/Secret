@@ -15,7 +15,8 @@ def read_token_from_config_file(config, key):
     return parser.get('creds', key)
 
 def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
-    global samco,df_main,Stock_samco1,stocklist,pandl,dattt,pandlP,marginn,listtttttttt_pl
+    global samco,df_main,Stock_samco1,stocklist,pandl,dattt,pandlP,marginn,listtttttttt_pl,sl_perc,target_perc,\
+        sl_perc_latest5,target_perc_latest5,sl_perc_normal5,target_perc_normal5
 
     period_rsi = 14
     period_bollinger = 20
@@ -51,6 +52,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
 
         stochrsii = (rsii - rsii.rolling(period_rsi).min()) / (rsii.rolling(period_rsi).max() - rsii.rolling(period_rsi).min())
         stochrsii_K = stochrsii.rolling(3).mean()
+        stochrsii_D = stochrsii_K.rolling(3).mean()
 
         MiddleBand = df_close.rolling(period_bollinger).mean()
         UpperBand = MiddleBand + df_close.rolling(period_bollinger).std() * multiplier1
@@ -61,8 +63,8 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
         df_rada_low = df_rada['Low'][stk]
 
         if flsr(100*stochrsii_K[-1]) == 100 and df_close.iloc[-1] > flsr(1.0025*UpperBand.iloc[-1]):
-            if df_high.iloc[-1] >= flsr(1.002*df_close.iloc[-1]) and df_low.iloc[-1] >= flsr(0.9975 * df_open.iloc[-1]):
-                baddy = 2
+            # if df_high.iloc[-1] >= flsr(1.002*df_close.iloc[-1]) and df_low.iloc[-1] >= flsr(0.9975 * df_open.iloc[-1]):
+            #     baddy = 2
             if df_rada_high.iloc[-1] >= flsr(1.002 * df_rada_open.iloc[-1]) and df_rada_low.iloc[-1] <= flsr(0.9993 * df_close.iloc[-1]) \
                     and df_low.iloc[-1] >= flsr(0.9975 * df_open.iloc[-1]):
                 baddy = 2
@@ -72,8 +74,8 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
             #         baddy = 0
             #         break
         if flsr(100*stochrsii_K[-1]) == 0 and df_close.iloc[-1] < flsr(0.9975*LowerBand.iloc[-1]):
-            if df_low.iloc[-1] <= flsr(0.998*df_close.iloc[-1]) and df_high.iloc[-1] <= flsr(1.0025 * df_open.iloc[-1]):
-                baddy = 1
+            # if df_low.iloc[-1] <= flsr(0.998*df_close.iloc[-1]) and df_high.iloc[-1] <= flsr(1.0025 * df_open.iloc[-1]):
+            #     baddy = 1
             if df_rada_low.iloc[-1] <= flsr(0.998 * df_rada_open.iloc[-1]) and df_rada_high.iloc[-1] >= flsr(1.0007 * df_close.iloc[-1]) \
                     and df_high.iloc[-1] <= flsr(1.0025 * df_open.iloc[-1]):
                 baddy = 1
@@ -84,6 +86,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
             #         break
 
         aniket = 'none'
+        stoch_minus_two = flsr(100 * stochrsii_K[-2])
         if baddy == 1:
             sl1 = flsr(2-sl)
             trr = flsr(trgett)
@@ -115,13 +118,15 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                             gogogo = 'go'
                             break
                     break
-            if gogogo != 'go1':
-                for tkl in [0, 1, 2, 3, 4]:
-                    if df_1m_samco['high'].iloc[tkl] >= flsr(1.0007 * df_close.iloc[-1]):
-                        gogogo = 'po'
-                        break
+            # if gogogo != 'go1':
+            #     for tkl in [0, 1, 2, 3, 4]:
+            #         if df_1m_samco['high'].iloc[tkl] >= flsr(1.0007 * df_close.iloc[-1]):
+            #             gogogo = 'po'
+            #             break
             if  gogogo == 'go' or gogogo == 'po':
                 if df_1m_samco['high'].iloc[tkl] >= flsr(1.0007 * df_close.iloc[-1]):
+                    datetime_samco1 = df_1m_samco['dateTime'].iloc[tkl][:19]
+                    datetime_samco = dt.strptime(datetime_samco1, '%Y-%m-%d %H:%M:%S')
                     df_close_rada = flsr(1.0007 * df_close.iloc[-1])
                     for i in range(len(df_1m_samco) - tkl, 0, -1):
                         if aniket[0] == 'p':
@@ -207,13 +212,15 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                             gogogo = 'go'
                             break
                     break
-            if gogogo != 'go1':
-                for tkl in [0, 1, 2, 3, 4]:
-                    if df_1m_samco['low'].iloc[tkl] <= flsr(0.9993 * df_close.iloc[-1]):
-                        gogogo = 'po'
-                        break
+            # if gogogo != 'go1':
+            #     for tkl in [0, 1, 2, 3, 4]:
+            #         if df_1m_samco['low'].iloc[tkl] <= flsr(0.9993 * df_close.iloc[-1]):
+            #             gogogo = 'po'
+            #             break
             if gogogo == 'go' or gogogo == 'po':
                 if df_1m_samco['low'].iloc[tkl] <= flsr(0.9993 * df_close.iloc[-1]):
+                    datetime_samco1 = df_1m_samco['dateTime'].iloc[tkl][:19]
+                    datetime_samco = dt.strptime(datetime_samco1, '%Y-%m-%d %H:%M:%S')
                     df_close_rada = flsr(0.9993 * df_close.iloc[-1])
                     for i in range(len(df_1m_samco) - tkl, 0, -1):
                         if aniket[0] == 'p':
@@ -334,10 +341,21 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
         normal_dfclose_loww5_perc = flsr(min_loww_5 / flsr(df_close.iloc[-1]))
         normal_dfclose_highh5_perc = flsr(max_highh_5 / flsr(df_close.iloc[-1]))
 
-        print(' margin is ',margink,' Entry time ', str(df.index[-1])[:19],'       ',
-              profitt ,'               ',pandl,'                ',outputt,'               ','End time',dattt,'    ',
-              flsr(min_loww),flsr(df_close.iloc[-1]),flsr(max_highh),' ',
-              sl_perccc,target_perccc,' ',sl_perccc_5,target_perccc_5,' ',normal_dfclose_loww5_perc,normal_dfclose_highh5_perc)
+        if aniket[:4] == 'loss':
+            sl_perc.append(sl_perccc)
+            target_perc.append(target_perccc)
+            sl_perc_latest5.append(sl_perccc_5)
+            target_perc_latest5.append(target_perccc_5)
+            sl_perc_normal5.append(normal_dfclose_loww5_perc)
+            target_perc_normal5.append(normal_dfclose_highh5_perc)
+
+        # print(' margin is ',margink,' Entry time ', str(df.index[-1])[:19],'       ',
+        #       profitt ,'               ',pandl,'                ',outputt,'               ','End time',dattt,'    ',
+        #       flsr(min_loww),flsr(df_close.iloc[-1]),flsr(max_highh),' ',
+        #       sl_perccc,target_perccc,' ',sl_perccc_5,target_perccc_5,' ',normal_dfclose_loww5_perc,normal_dfclose_highh5_perc,'    ',stoch_minus_two)
+        print(' margin is ', margink, ' Entry time ', str(df.index[-1])[:19], '       ',
+              profitt, '               ', pandl, '                ', outputt, '               ', 'End time', dattt,
+              '    ',stoch_minus_two,datetime_samco1[11:19],'   ',flsr(flsr((datetime_samco - dt.strptime(str(df.index[-1])[:19], '%Y-%m-%d %H:%M:%S')).seconds)/60 - 4))
     return len(outputt),len(profitt),len(losss),len(neutral)
 
 
@@ -360,6 +378,7 @@ Stock_samco1=Stock_samco1.tolist()
 Stock_samco1.remove('BAJFINANCE')
 Stock_samco1.insert(0,'BAJFINANCE')
 Stock_samco1.remove('DIXON')
+Stock_samco1.remove('ASTRAL')
 
 stocklist = []
 for i in Stock_samco1:
@@ -372,7 +391,7 @@ st = st[:-1]
 st = st.replace('\'', '')
 st = st.replace(',', '')
 
-df_main = yf.download(tickers=st, start='2021-01-25',interval='5m')
+df_main = yf.download(tickers=st, start='2021-02-01',interval='5m')
 dfgh = df_main
 for i in range(len(df_main)):
     if str(df_main.index[i])[:10] == '2021-02-24':
@@ -400,6 +419,12 @@ llays = llays * 75 + 18
 star = 0
 pandl = 0
 pandlP = 0
+sl_perc = []
+target_perc = []
+sl_perc_latest5 = []
+target_perc_latest5 = []
+sl_perc_normal5 = []
+target_perc_normal5 = []
 listtttttttt_pl = []
 Total, Profit, Loss, Neutral = 0, 0, 0, 0
 dattt = '2020-01-01 12:00:00'
@@ -421,50 +446,47 @@ for i in range(ddays, llays, -1):
 print('Total=',Total,'         Profit Trades=', Profit,'        Loss Trades=', Loss,'        Neutral trades=', Neutral)
 print('p&l in percentage is ', pandlP,'\n')
 print('p&l is ', pandl,'\n')
+print(sl_perc,'\n',target_perc,'\n',sl_perc_latest5,'\n',target_perc_latest5,'\n',sl_perc_normal5,'\n',target_perc_normal5)
+
+ert1 = []
+ert9 = []
+for i in sl_perc_latest5:
+    if i>1:
+        ert1.append(i)
+    if i<1:
+        ert9.append(i)
+
+print(min(ert1))
+print(max(ert9))
+print(max(ert1))
+print(min(ert9))
+
+ert1 = []
+ert9 = []
+for i in target_perc_latest5:
+    if i>1:
+        ert1.append(i)
+    if i<1:
+        ert9.append(i)
+
+print(min(ert1))
+print(max(ert9))
+print(max(ert1))
+print(min(ert9))
+
+with open('sl_perc','w') as f:
+    f.write(str(sl_perc))
+with open('target_perc','w') as f:
+    f.write(str(target_perc))
+with open('sl_perc_latest5','w') as f:
+    f.write(str(sl_perc_latest5))
+with open('target_perc_latest5','w') as f:
+    f.write(str(target_perc_latest5))
+with open('sl_perc_normal5','w') as f:
+    f.write(str(sl_perc_normal5))
+with open('target_perc_normal5','w') as f:
+    f.write(str(target_perc_normal5))
 plt.style.use('dark_background')
 plt.plot(listtttttttt_pl)
 plt.show()
 print(dt.now(),'\n','\n')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# for gh in range(20):
-#     rado = 1.001 + 0.0005*gh
-#     rado = flsr(rado)
-#     print(rado)
-#     star = 0
-#     pandl = 0
-#     Total, Profit, Loss, Neutral = 0, 0, 0, 0
-#     dattt = '2020-01-01'
-#     print(dt.now())
-#     for i in range(ddays, llays, -1):
-#         star = star + 1
-#         if star >= 49 and star <= 75:
-#             if star == 75:
-#                 star = 0
-#             continue
-#         # if str(df_main.iloc[:-1 * i].index[-1])[:10] == dattt:
-#         #     continue
-#         v, b, n, m = bolling_macd(i, 1.0031, rado)
-#         Total = Total + v
-#         Profit = Profit + b
-#         Loss = Loss + n
-#         Neutral = Neutral + m
-#     print('profit in % is ', pandl + Loss * 0.31)
-#     pandl = 1000 * pandl - Total * 90
-#     print(Total, Profit, Loss, Neutral)
-#     print('p&l is ', pandl)
-#     print(dt.now())
