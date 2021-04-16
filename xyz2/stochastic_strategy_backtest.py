@@ -65,8 +65,8 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
         if flsr(100*stochrsii_K[-1]) == 100 and df_close.iloc[-1] > flsr(1.0025*UpperBand.iloc[-1]):
             # if df_high.iloc[-1] >= flsr(1.002*df_close.iloc[-1]) and df_low.iloc[-1] >= flsr(0.9975 * df_open.iloc[-1]):
             #     baddy = 2
-            if df_rada_high.iloc[-1] >= flsr(1.002 * df_rada_open.iloc[-1]) and df_rada_low.iloc[-1] <= flsr(0.9993 * df_close.iloc[-1]) \
-                    and df_low.iloc[-1] >= flsr(0.9975 * df_open.iloc[-1]):
+            if df_rada_high.iloc[-1] >= flsr(1.002 * df_close.iloc[-1]) and df_rada_low.iloc[-1] <= flsr(0.9993 * df_close.iloc[-1]) \
+                    and df_low.iloc[-1] >= flsr(0.999 * df_open.iloc[-1]):
                 baddy = 2
                 gogogo = 'go1'
             # for i in range(1, 6):
@@ -76,8 +76,8 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
         if flsr(100*stochrsii_K[-1]) == 0 and df_close.iloc[-1] < flsr(0.9975*LowerBand.iloc[-1]):
             # if df_low.iloc[-1] <= flsr(0.998*df_close.iloc[-1]) and df_high.iloc[-1] <= flsr(1.0025 * df_open.iloc[-1]):
             #     baddy = 1
-            if df_rada_low.iloc[-1] <= flsr(0.998 * df_rada_open.iloc[-1]) and df_rada_high.iloc[-1] >= flsr(1.0007 * df_close.iloc[-1]) \
-                    and df_high.iloc[-1] <= flsr(1.0025 * df_open.iloc[-1]):
+            if df_rada_low.iloc[-1] <= flsr(0.998 * df_close.iloc[-1]) and df_rada_high.iloc[-1] >= flsr(1.0007 * df_close.iloc[-1]) \
+                    and df_high.iloc[-1] <= flsr(1.001 * df_open.iloc[-1]):
                 baddy = 1
                 gogogo = 'go1'
             # for i in range(1, 6):
@@ -354,8 +354,8 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
         #       flsr(min_loww),flsr(df_close.iloc[-1]),flsr(max_highh),' ',
         #       sl_perccc,target_perccc,' ',sl_perccc_5,target_perccc_5,' ',normal_dfclose_loww5_perc,normal_dfclose_highh5_perc,'    ',stoch_minus_two)
         print(' margin is ', margink, ' Entry time ', str(df.index[-1])[:19], '       ',
-              profitt, '               ', pandl, '                ', outputt, '               ', 'End time', dattt,
-              '    ',stoch_minus_two,datetime_samco1[11:19],'   ',flsr(flsr((datetime_samco - dt.strptime(str(df.index[-1])[:19], '%Y-%m-%d %H:%M:%S')).seconds)/60 - 4))
+              profitt, '          ', pandl, '            ', outputt, '               ', 'End time', dattt,
+              '    ',stoch_minus_two,'   ',flsr(flsr((datetime_samco - dt.strptime(str(df.index[-1])[:19], '%Y-%m-%d %H:%M:%S')).seconds)/60 - 4))
     return len(outputt),len(profitt),len(losss),len(neutral)
 
 
@@ -391,7 +391,7 @@ st = st[:-1]
 st = st.replace('\'', '')
 st = st.replace(',', '')
 
-df_main = yf.download(tickers=st, start='2021-02-01',interval='5m')
+df_main = yf.download(tickers=st, start='2021-03-15',interval='5m')
 dfgh = df_main
 for i in range(len(df_main)):
     if str(df_main.index[i])[:10] == '2021-02-24':
@@ -411,7 +411,7 @@ marginn=dict(zip(w.Symbol,w.Margin))
 
 
 # ddays = int(input('Enter no. of days for backtesting'))
-ddays = 41
+ddays = 10
 ddays = ddays * 75 - 9
 llays = 0
 llays = llays * 75 + 18
@@ -490,3 +490,122 @@ plt.style.use('dark_background')
 plt.plot(listtttttttt_pl)
 plt.show()
 print(dt.now(),'\n','\n')
+
+
+# star = 0
+# pandl = 0
+# pandlP = 0
+# sl_perc = []
+# target_perc = []
+# sl_perc_latest5 = []
+# target_perc_latest5 = []
+# sl_perc_normal5 = []
+# target_perc_normal5 = []
+# listtttttttt_pl = []
+# Total, Profit, Loss, Neutral = 0, 0, 0, 0
+# dattt = '2020-01-01 12:00:00'
+# dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+# print(dt.now(),'\n')
+# for i in range(ddays, llays, -1):
+#     star = star + 1
+#     if star >= 49 and star <= 75:
+#         if star == 75:
+#             star = 0
+#         continue
+#     rtyui = dt.strptime(str(df_main.index[-1*i])[:19], '%Y-%m-%d %H:%M:%S')
+#     if rtyui > dattt:
+#         v, b, n, m = bolling_macd(i, 1.0031, 1.0014, 0.0005, 0.0005, 1.0014)
+#         Total = Total + v
+#         Profit = Profit + b
+#         Loss = Loss + n
+#         Neutral = Neutral + m
+# print('Total=',Total,'         Profit Trades=', Profit,'        Loss Trades=', Loss,'        Neutral trades=', Neutral)
+# print('p&l in percentage is ', pandlP,'\n')
+# print('p&l is ', pandl,'\n')
+# print(sl_perc,'\n',target_perc,'\n',sl_perc_latest5,'\n',target_perc_latest5,'\n',sl_perc_normal5,'\n',target_perc_normal5)
+#
+# ert1 = []
+# ert9 = []
+# for i in sl_perc_latest5:
+#     if i>1:
+#         ert1.append(i)
+#     if i<1:
+#         ert9.append(i)
+#
+# print(min(ert1))
+# print(max(ert9))
+# print(max(ert1))
+# print(min(ert9))
+#
+# ert1 = []
+# ert9 = []
+# for i in target_perc_latest5:
+#     if i>1:
+#         ert1.append(i)
+#     if i<1:
+#         ert9.append(i)
+#
+# print(min(ert1))
+# print(max(ert9))
+# print(max(ert1))
+# print(min(ert9))
+#
+# with open('sl_perc','w') as f:
+#     f.write(str(sl_perc))
+# with open('target_perc','w') as f:
+#     f.write(str(target_perc))
+# with open('sl_perc_latest5','w') as f:
+#     f.write(str(sl_perc_latest5))
+# with open('target_perc_latest5','w') as f:
+#     f.write(str(target_perc_latest5))
+# with open('sl_perc_normal5','w') as f:
+#     f.write(str(sl_perc_normal5))
+# with open('target_perc_normal5','w') as f:
+#     f.write(str(target_perc_normal5))
+# plt.style.use('dark_background')
+# plt.plot(listtttttttt_pl)
+# plt.show()
+# print(dt.now(),'\n','\n')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# for gh in range(20):
+#     rado = 1.001 + 0.0005*gh
+#     rado = flsr(rado)
+#     print(rado)
+#     star = 0
+#     pandl = 0
+#     Total, Profit, Loss, Neutral = 0, 0, 0, 0
+#     dattt = '2020-01-01'
+#     print(dt.now())
+#     for i in range(ddays, llays, -1):
+#         star = star + 1
+#         if star >= 49 and star <= 75:
+#             if star == 75:
+#                 star = 0
+#             continue
+#         # if str(df_main.iloc[:-1 * i].index[-1])[:10] == dattt:
+#         #     continue
+#         v, b, n, m = bolling_macd(i, 1.0031, rado)
+#         Total = Total + v
+#         Profit = Profit + b
+#         Loss = Loss + n
+#         Neutral = Neutral + m
+#     print('profit in % is ', pandl + Loss * 0.31)
+#     pandl = 1000 * pandl - Total * 90
+#     print(Total, Profit, Loss, Neutral)
+#     print('p&l is ', pandl)
+#     print(dt.now())
