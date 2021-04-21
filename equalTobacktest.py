@@ -15,7 +15,7 @@ def read_token_from_config_file(config, key):
     return parser.get('creds', key)
 
 def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
-    global samco,df_main,Stock_samco1,stocklist,pandl,dattt,pandlP,marginn
+    global samco,df_main,Stock_samco1,stocklist,pandl,dattt,pandlP,marginn,listtttttttt_pl
 
     period_rsi = 14
     period_bollinger = 20
@@ -156,7 +156,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                             dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
 
         if baddy == 2:
-            sl = flsr((df_close.iloc[-1] - df_open.iloc[-1]) / df_close.iloc[-1] + 1)
+            sl = flsr((df_open.iloc[-1] - df_close.iloc[-1]) / df_close.iloc[-1] + 1)
             trgett1 = flsr(2 - trgett)
             mintarget1 = flsr(2 - mintarget)
             trr = flsr(trgett1)
@@ -264,6 +264,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
             outputt.append(aniket)
             break
     if len(outputt) != 0:
+        listtttttttt_pl.append(pandl)
         print(' margin is ', margink, ' Entry time ', str(df.index[-1])[:19], '       ',
               profitt, '          ', pandl, '            ', outputt, '               ', 'End time', dattt)
 
@@ -330,6 +331,7 @@ llays = llays * 75 + 6
 star = 0
 pandl = 0
 pandlP = 0
+listtttttttt_pl = []
 Total, Profit, Loss, Neutral = 0, 0, 0, 0
 dattt = '2020-01-01 12:00:00'
 dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
@@ -350,3 +352,7 @@ for i in range(ddays, llays, -1):
 print('Total=',Total,'         Profit Trades=', Profit,'        Loss Trades=', Loss,'        Neutral trades=', Neutral)
 print('p&l in percentage is ', pandlP,'\n')
 print('p&l is ', pandl,'\n')
+
+plt.style.use('dark_background')
+plt.plot(listtttttttt_pl)
+plt.show()
