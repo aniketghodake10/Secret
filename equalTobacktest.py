@@ -87,66 +87,72 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
             godatt = df.index[-1] + td(minutes=5)
 
             df_1m_samco = pd.read_csv("samco_df_1m_nifty500/" + stk[:-3] + "_1m_samco.csv")
-            aalist = list(df_1m_samco['dateTime']).index(str(godatt)[:19] + '.0')
-            aalist2 = list(df_1m_samco['dateTime']).index(str(godatt)[:10] + ' 15:29:00' + '.0')
-
             try:
-                df_1m_samco = df_1m_samco[aalist:aalist2 + 1]
-            except Exception:
-                df_1m_samco = df_1m_samco[aalist:]
+                aalist = list(df_1m_samco['dateTime']).index(str(godatt)[:19] + '.0')
+                aalist2 = list(df_1m_samco['dateTime']).index(str(godatt)[:10] + ' 15:29:00' + '.0')
+            except Exception as e:
+                print(stk + ' df 1m dateTime error  ', e)
+                baddy = 0
 
-            df_close_rada = flsr(1 * df_close.iloc[-1])
-            for i in range(len(df_1m_samco), 0, -1):
-                if aniket[0] == 'p':
-                    if trr == flsr(trgett + stepp):
-                        if df_1m_samco['low'].iloc[-1 * i] <= flsr(flsr(mintarget) * df_close_rada):
-                            aniket = 'p' + str(flsr(mintarget)) + stk + 'up'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            break
-                    if trr != flsr(trgett + stepp):
-                        if df_1m_samco['low'].iloc[-1 * i] <= flsr(flsr(trr - flsr(stepp + sqstepp)) * df_close_rada):
-                            aniket = 'p' + str(flsr(trr - flsr(stepp + sqstepp))) + stk + 'up'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            break
-                if df_1m_samco['high'].iloc[-1 * i] >= flsr((trr) * df_close_rada):
-                    aniket = 'p' + str(trr) + stk + 'up'
-                    dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                    dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                    tl = flsr(trr)
-                    for k in range(1, 25):
-                        k = flsr(k * stepp)
-                        trrk = flsr(trr + k)
-                        if df_1m_samco['high'].iloc[-1 * i] >= flsr((trrk) * df_close_rada):
-                            aniket = 'p' + str(trrk) + stk + 'up'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            tl = flsr(trrk)
-                    if tl == trgett:
-                        if df_1m_samco['close'].iloc[-1 * i] <= flsr(flsr(mintarget) * df_close_rada):
-                            aniket = 'p' + str(flsr(mintarget)) + stk + 'up'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            break
-                    if tl != trgett:
-                        if df_1m_samco['close'].iloc[-1 * i] <= flsr(flsr(tl - sqstepp) * df_close_rada):
-                            aniket = 'p' + str(flsr(tl - sqstepp)) + stk + 'up'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            break
-                    trr = flsr(tl + stepp)
+            if baddy == 1:
+                try:
+                    df_1m_samco = df_1m_samco[aalist:aalist2 + 1]
+                except Exception:
+                    df_1m_samco = df_1m_samco[aalist:]
 
-                if aniket[0] != 'p':
-                    if df_1m_samco['low'].iloc[-1 * i] <= flsr(sl1 * df_close_rada):
-                        aniket = 'loss' + stk + 'up'
+                df_close_rada = flsr(1 * df_close.iloc[-1])
+                for i in range(len(df_1m_samco), 0, -1):
+                    if aniket[0] == 'p':
+                        if trr == flsr(trgett + stepp):
+                            if df_1m_samco['low'].iloc[-1 * i] <= flsr(flsr(mintarget) * df_close_rada):
+                                aniket = 'p' + str(flsr(mintarget)) + stk + 'up'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                break
+                        if trr != flsr(trgett + stepp):
+                            if df_1m_samco['low'].iloc[-1 * i] <= flsr(
+                                    flsr(trr - flsr(stepp + sqstepp)) * df_close_rada):
+                                aniket = 'p' + str(flsr(trr - flsr(stepp + sqstepp))) + stk + 'up'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                break
+                    if df_1m_samco['high'].iloc[-1 * i] >= flsr((trr) * df_close_rada):
+                        aniket = 'p' + str(trr) + stk + 'up'
                         dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
                         dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                        break
-                    else:
-                        aniket = 'neut' + stk + 'up'
-                        dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                        dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                        tl = flsr(trr)
+                        for k in range(1, 25):
+                            k = flsr(k * stepp)
+                            trrk = flsr(trr + k)
+                            if df_1m_samco['high'].iloc[-1 * i] >= flsr((trrk) * df_close_rada):
+                                aniket = 'p' + str(trrk) + stk + 'up'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                tl = flsr(trrk)
+                        if tl == trgett:
+                            if df_1m_samco['close'].iloc[-1 * i] <= flsr(flsr(mintarget) * df_close_rada):
+                                aniket = 'p' + str(flsr(mintarget)) + stk + 'up'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                break
+                        if tl != trgett:
+                            if df_1m_samco['close'].iloc[-1 * i] <= flsr(flsr(tl - sqstepp) * df_close_rada):
+                                aniket = 'p' + str(flsr(tl - sqstepp)) + stk + 'up'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                break
+                        trr = flsr(tl + stepp)
+
+                    if aniket[0] != 'p':
+                        if df_1m_samco['low'].iloc[-1 * i] <= flsr(sl1 * df_close_rada):
+                            aniket = 'loss' + stk + 'up'
+                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                            break
+                        else:
+                            aniket = 'neut' + stk + 'up'
+                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
 
         if baddy == 2:
             trgett1 = flsr(2 - trgett)
@@ -155,66 +161,72 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
             godatt = df.index[-1] + td(minutes=5)
 
             df_1m_samco = pd.read_csv("samco_df_1m_nifty500/" + stk[:-3] + "_1m_samco.csv")
-            aalist = list(df_1m_samco['dateTime']).index(str(godatt)[:19] + '.0')
-            aalist2 = list(df_1m_samco['dateTime']).index(str(godatt)[:10] + ' 15:29:00' + '.0')
-
             try:
-                df_1m_samco = df_1m_samco[aalist:aalist2 + 1]
-            except Exception:
-                df_1m_samco = df_1m_samco[aalist:]
+                aalist = list(df_1m_samco['dateTime']).index(str(godatt)[:19] + '.0')
+                aalist2 = list(df_1m_samco['dateTime']).index(str(godatt)[:10] + ' 15:29:00' + '.0')
+            except Exception as e:
+                print(stk + ' df 1m dateTime error  ', e)
+                baddy = 0
 
-            df_close_rada = flsr(1 * df_close.iloc[-1])
-            for i in range(len(df_1m_samco) , 0, -1):
-                if aniket[0] == 'p':
-                    if trr == flsr(trgett1 - stepp):
-                        if df_1m_samco['high'].iloc[-1 * i] >= flsr(flsr(mintarget1) * df_close_rada):
-                            aniket = 'p' + str(flsr(mintarget1)) + stk + 'do'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            break
-                    if trr != flsr(trgett1 - stepp):
-                        if df_1m_samco['high'].iloc[-1 * i] >= flsr(flsr(trr + flsr(stepp + sqstepp)) * df_close_rada):
-                            aniket = 'p' + str(flsr(trr + flsr(stepp + sqstepp))) + stk + 'do'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            break
-                if df_1m_samco['low'].iloc[-1 * i] <= flsr((trr) * df_close_rada):
-                    aniket = 'p' + str(trr) + stk + 'do'
-                    dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                    dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                    tl = flsr(trr)
-                    for k in range(1, 25):
-                        k = flsr(k * stepp)
-                        trrk = flsr(trr - k)
-                        if df_1m_samco['low'].iloc[-1 * i] <= flsr((trrk) * df_close_rada):
-                            aniket = 'p' + str(trrk) + stk + 'do'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            tl = flsr(trrk)
-                    if tl == trgett1:
-                        if df_1m_samco['close'].iloc[-1 * i] >= flsr(flsr(mintarget1) * df_close_rada):
-                            aniket = 'p' + str(flsr(mintarget1)) + stk + 'do'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            break
-                    if tl != trgett1:
-                        if df_1m_samco['close'].iloc[-1 * i] >= flsr(flsr(tl + sqstepp) * df_close_rada):
-                            aniket = 'p' + str(flsr(tl + sqstepp)) + stk + 'do'
-                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                            break
-                    trr = flsr(tl - stepp)
+            if baddy == 2:
+                try:
+                    df_1m_samco = df_1m_samco[aalist:aalist2 + 1]
+                except Exception:
+                    df_1m_samco = df_1m_samco[aalist:]
 
-                if aniket[0] != 'p':
-                    if df_1m_samco['high'].iloc[-1 * i] >= flsr(sl * df_close_rada):
-                        aniket = 'loss' + stk + 'do'
+                df_close_rada = flsr(1 * df_close.iloc[-1])
+                for i in range(len(df_1m_samco), 0, -1):
+                    if aniket[0] == 'p':
+                        if trr == flsr(trgett1 - stepp):
+                            if df_1m_samco['high'].iloc[-1 * i] >= flsr(flsr(mintarget1) * df_close_rada):
+                                aniket = 'p' + str(flsr(mintarget1)) + stk + 'do'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                break
+                        if trr != flsr(trgett1 - stepp):
+                            if df_1m_samco['high'].iloc[-1 * i] >= flsr(
+                                    flsr(trr + flsr(stepp + sqstepp)) * df_close_rada):
+                                aniket = 'p' + str(flsr(trr + flsr(stepp + sqstepp))) + stk + 'do'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                break
+                    if df_1m_samco['low'].iloc[-1 * i] <= flsr((trr) * df_close_rada):
+                        aniket = 'p' + str(trr) + stk + 'do'
                         dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
                         dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
-                        break
-                    else:
-                        aniket = 'neut' + stk + 'do'
-                        dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
-                        dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                        tl = flsr(trr)
+                        for k in range(1, 25):
+                            k = flsr(k * stepp)
+                            trrk = flsr(trr - k)
+                            if df_1m_samco['low'].iloc[-1 * i] <= flsr((trrk) * df_close_rada):
+                                aniket = 'p' + str(trrk) + stk + 'do'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                tl = flsr(trrk)
+                        if tl == trgett1:
+                            if df_1m_samco['close'].iloc[-1 * i] >= flsr(flsr(mintarget1) * df_close_rada):
+                                aniket = 'p' + str(flsr(mintarget1)) + stk + 'do'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                break
+                        if tl != trgett1:
+                            if df_1m_samco['close'].iloc[-1 * i] >= flsr(flsr(tl + sqstepp) * df_close_rada):
+                                aniket = 'p' + str(flsr(tl + sqstepp)) + stk + 'do'
+                                dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                                dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                                break
+                        trr = flsr(tl - stepp)
+
+                    if aniket[0] != 'p':
+                        if df_1m_samco['high'].iloc[-1 * i] >= flsr(sl * df_close_rada):
+                            aniket = 'loss' + stk + 'do'
+                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
+                            break
+                        else:
+                            aniket = 'neut' + stk + 'do'
+                            dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
+                            dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
 
 
         if stk[:-3] in marginn.keys():
@@ -288,7 +300,7 @@ st = st[:-1]
 st = st.replace('\'', '')
 st = st.replace(',', '')
 
-df_main = yf.download(tickers=st, start='2021-03-21',interval='5m')
+df_main = yf.download(tickers=st, start='2021-03-22',interval='5m')
 dfgh = df_main
 for i in range(len(df_main)):
     if str(df_main.index[i])[:10] == '2021-02-24':
@@ -328,7 +340,7 @@ for i in range(ddays, llays, -1):
         continue
     rtyui = dt.strptime(str(df_main.index[-1*i])[:19], '%Y-%m-%d %H:%M:%S')
     if rtyui > dattt:
-        v, b, n, m = bolling_macd(i, 1.0075, 1.0018, 0.0005, 0.0005, 1.0015)
+        v, b, n, m = bolling_macd(i, 1.006, 1.004, 0.0015, 0.002, 1.0035)
         Total = Total + v
         Profit = Profit + b
         Loss = Loss + n
