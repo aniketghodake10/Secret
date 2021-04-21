@@ -7,7 +7,7 @@ import requests
 import time
 import configparser as cfg
 import yfinance as yf
-from matplotlib import pyplot as plt
+
 
 def read_token_from_config_file(config, key):
     parser = cfg.ConfigParser()
@@ -56,7 +56,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
         UpperBand = MiddleBand + df_close.rolling(period_bollinger).std() * multiplier1
         LowerBand = MiddleBand - df_close.rolling(period_bollinger).std() * multiplier2
 
-        if flsr(100 * stochrsii_K[-2]) > 80 and df_close.iloc[-2] > flsr(UpperBand.iloc[-2]) > df_open.iloc[-2]:
+        if flsr(100 * stochrsii_K[-2]) > 80 and df_close.iloc[-2] > flsr(UpperBand.iloc[-2]) > df_open.iloc[-2] and df_close.iloc[-1] > 25:
             # if df_high.iloc[-1] >= flsr(1.002*df_close.iloc[-1]) and df_low.iloc[-1] >= flsr(0.9975 * df_open.iloc[-1]):
             #     baddy = 2
             if ((df_close.iloc[-2] - df_open.iloc[-1]) / df_close.iloc[-2] < 0.0002) and (
@@ -67,7 +67,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
             #     if df_close.iloc[-1*i] < df_close.iloc[-1*i-1]:
             #         baddy = 0
             #         break
-        if flsr(100 * stochrsii_K[-2]) < 20 and df_close.iloc[-2] < flsr(LowerBand.iloc[-2]) < df_open.iloc[-2]:
+        if flsr(100 * stochrsii_K[-2]) < 20 and df_close.iloc[-2] < flsr(LowerBand.iloc[-2]) < df_open.iloc[-2] and df_close.iloc[-1] > 25:
             # if df_low.iloc[-1] <= flsr(0.998*df_close.iloc[-1]) and df_high.iloc[-1] <= flsr(1.0025 * df_open.iloc[-1]):
             #     baddy = 1
             if ((df_close.iloc[-2] - df_open.iloc[-1]) / df_close.iloc[-2] < 0.0002) and (
@@ -83,10 +83,11 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
         stoch_minus_two = flsr(100 * stochrsii_K[-2])
         if baddy == 1:
             sl1 = flsr(2-sl)
+            sl1 = flsr(1 - (df_close.iloc[-1] - df_open.iloc[-1]) / df_close.iloc[-1])
             trr = flsr(trgett)
             godatt = df.index[-1] + td(minutes=5)
 
-            df_1m_samco = pd.read_csv("samco_df_1m_nifty500/" + stk[:-3] + "_1m_samco.csv")
+            df_1m_samco = pd.read_csv(stk[:-3] + "_1m_samco.csv")
             try:
                 aalist = list(df_1m_samco['dateTime']).index(str(godatt)[:19] + '.0')
                 aalist2 = list(df_1m_samco['dateTime']).index(str(godatt)[:10] + ' 15:29:00' + '.0')
@@ -155,12 +156,13 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                             dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
 
         if baddy == 2:
+            sl = flsr((df_close.iloc[-1] - df_open.iloc[-1]) / df_close.iloc[-1] + 1)
             trgett1 = flsr(2 - trgett)
             mintarget1 = flsr(2 - mintarget)
             trr = flsr(trgett1)
             godatt = df.index[-1] + td(minutes=5)
 
-            df_1m_samco = pd.read_csv("samco_df_1m_nifty500/" + stk[:-3] + "_1m_samco.csv")
+            df_1m_samco = pd.read_csv(stk[:-3] + "_1m_samco.csv")
             try:
                 aalist = list(df_1m_samco['dateTime']).index(str(godatt)[:19] + '.0')
                 aalist2 = list(df_1m_samco['dateTime']).index(str(godatt)[:10] + ' 15:29:00' + '.0')
