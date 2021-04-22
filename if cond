@@ -1,0 +1,23 @@
+        if df_close.iloc[-2] > 22 and flsr(100 * stochrsii_K[-2]) > 80 and df_close.iloc[-2] > flsr(UpperBand.iloc[-2]) > df_open.iloc[-2]:
+            # if df_high.iloc[-1] >= flsr(1.002*df_close.iloc[-1]) and df_low.iloc[-1] >= flsr(0.9975 * df_open.iloc[-1]):
+            #     baddy = 2
+            if ((df_close.iloc[-2] - df_open.iloc[-1]) / df_close.iloc[-2] < 0.0002) and (
+                    df_close.iloc[-2] > flsr(df_open.iloc[-2] * 1.008)) and (
+                    df_close.iloc[-1] < flsr(df_close.iloc[-2] * 0.992))\
+                    and (df_close.iloc[-1] > df_open.iloc[-2]):
+                baddy = 2
+            # for i in range(1, 6):
+            #     if df_close.iloc[-1*i] < df_close.iloc[-1*i-1]:
+            #         baddy = 0
+            #         break
+        if df_close.iloc[-2] > 22 and flsr(100 * stochrsii_K[-2]) < 20 and df_close.iloc[-2] < flsr(LowerBand.iloc[-2]) < df_open.iloc[-2]:
+            # if df_low.iloc[-1] <= flsr(0.998*df_close.iloc[-1]) and df_high.iloc[-1] <= flsr(1.0025 * df_open.iloc[-1]):
+            #     baddy = 1
+            if ((df_close.iloc[-2] - df_open.iloc[-1]) / df_close.iloc[-2] < 0.0002) and (
+                    df_close.iloc[-2] < flsr(df_open.iloc[-2] * 0.992)) and (
+                    df_close.iloc[-1] > flsr(df_close.iloc[-2] * 1.008)) and ((df_low.iloc[-1] - df_open.iloc[-1]) / df_open.iloc[-1] > -0.007) and (df_close.iloc[-1] < flsr(df_open.iloc[-2] * 0.998)):
+                baddy = 1
+            # for i in range(1, 6):
+            #     if df_close.iloc[-1*i] > df_close.iloc[-1*i-1]:
+            #         baddy = 0
+            #         break
