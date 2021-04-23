@@ -96,12 +96,12 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
         aniket = 'none'
         if baddy == 1:
             print('baddy1 ', stk, df.index[-1])
-            sl1 = flsr(2 - sl)
+            # sl1 = flsr(2 - sl)
             sl1 = flsr(df_low.iloc[-1] / df_high.iloc[-1])
             trr = flsr(trgett)
             godatt = df.index[-1] + td(minutes=5)
 
-            df_1m_samco = pd.read_csv("samco_df_1m_nifty500/" + stk[:-3] + "_1m_samco.csv")
+            df_1m_samco = pd.read_csv(stk[:-3] + "_1m_samco.csv")
             try:
                 aalist = list(df_1m_samco['dateTime']).index(str(godatt)[:19] + '.0')
                 aalist2 = list(df_1m_samco['dateTime']).index(str(godatt)[:10] + ' 15:29:00' + '.0')
@@ -115,15 +115,12 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                 except Exception:
                     df_1m_samco = df_1m_samco[aalist:]
 
-                print(df_1m_samco)
-
-                for jkl in [0, 1, 2, 3, 4]:
-                    if gogogo != 'go1':
-                        break
-                    if df_1m_samco['high'].iloc[jkl] >= df_high.iloc[-1]:
+                for jkl in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+                    # if gogogo != 'go1':
+                    #     break
+                    if df_1m_samco['high'].iloc[jkl] > flsr(1.0005 * df_high.iloc[-1]):
                         tkl = jkl
                         gogogo = 'go'
-                        print('tkl', tkl)
                         # if jkl !=4:
                         #     for vkl in range(jkl, tkl + 1):
                         #         if df_1m_samco['low'].iloc[vkl] <= flsr(0.9962 * df_close.iloc[-1]):
@@ -136,11 +133,10 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                 #             gogogo = 'po'
                 #             break
             if gogogo == 'go' or gogogo == 'po' and baddy == 1:
-                if df_1m_samco['high'].iloc[tkl] >= df_high.iloc[-1]:
-                    print('trade initiated')
+                if df_1m_samco['high'].iloc[tkl] > flsr(1.0005 * df_high.iloc[-1]):
                     datetime_samco1 = df_1m_samco['dateTime'].iloc[tkl][:19]
                     datetime_samco = dt.strptime(datetime_samco1, '%Y-%m-%d %H:%M:%S')
-                    df_close_rada = df_high.iloc[-1]
+                    df_close_rada = flsr(1.0005 * df_high.iloc[-1])
                     for i in range(len(df_1m_samco) - tkl, 0, -1):
                         if aniket[0] == 'p':
                             if trr == flsr(trgett + stepp):
@@ -201,7 +197,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
             trr = flsr(trgett1)
             godatt = df.index[-1] + td(minutes=5)
 
-            df_1m_samco = pd.read_csv("samco_df_1m_nifty500/" + stk[:-3] + "_1m_samco.csv")
+            df_1m_samco = pd.read_csv(stk[:-3] + "_1m_samco.csv")
             try:
                 aalist = list(df_1m_samco['dateTime']).index(str(godatt)[:19] + '.0')
                 aalist2 = list(df_1m_samco['dateTime']).index(str(godatt)[:10] + ' 15:29:00' + '.0')
@@ -215,15 +211,12 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                 except Exception:
                     df_1m_samco = df_1m_samco[aalist:]
 
-                print(df_1m_samco)
-
-                for jkl in [0, 1, 2, 3, 4]:
-                    if gogogo != 'go1':
-                        break
-                    if df_1m_samco['low'].iloc[jkl] <= df_low.iloc[-1]:
+                for jkl in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+                    # if gogogo != 'go1':
+                    #     break
+                    if df_1m_samco['low'].iloc[jkl] < flsr(0.9995 * df_low.iloc[-1]):
                         tkl = jkl
                         gogogo = 'go'
-                        print('tkl',tkl)
                         # if jkl != 4:
                         #     for vkl in range(jkl, tkl + 1):
                         #         if df_1m_samco['high'].iloc[vkl] >= flsr(1.0038 * df_close.iloc[-1]):
@@ -236,11 +229,10 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                 #             gogogo = 'po'
                 #             break
             if gogogo == 'go' or gogogo == 'po' and baddy == 2:
-                if df_1m_samco['low'].iloc[tkl] <= df_low.iloc[-1]:
-                    print('trade initiated')
+                if df_1m_samco['low'].iloc[jkl] < flsr(0.9995 * df_low.iloc[-1]):
                     datetime_samco1 = df_1m_samco['dateTime'].iloc[tkl][:19]
                     datetime_samco = dt.strptime(datetime_samco1, '%Y-%m-%d %H:%M:%S')
-                    df_close_rada = df_low.iloc[-1]
+                    df_close_rada = flsr(0.9995 * df_low.iloc[-1])
                     for i in range(len(df_1m_samco) - tkl, 0, -1):
                         if aniket[0] == 'p':
                             if trr == flsr(trgett1 - stepp):
@@ -367,10 +359,12 @@ st = st[:-1]
 st = st.replace('\'', '')
 st = st.replace(',', '')
 
-df_main = yf.download(tickers=st, start='2021-03-23',interval='5m')
+df_main = yf.download(tickers=st, start='2021-03-23', end='2021-04-19', interval='5m')
 dfgh = df_main
 for i in range(len(df_main)):
-    if str(df_main.index[i])[:10] == '2021-02-24':
+    if str(df_main.index[i])[:10] == '2021-02-24' or str(df_main.index[i])[:10] == '2021-04-23' or \
+            str(df_main.index[i])[:10] == '2021-04-22' or str(df_main.index[i])[:10] == '2021-04-21' or \
+            str(df_main.index[i])[:10] == '2021-04-20' or str(df_main.index[i])[:10] == '2021-04-19':
         dfgh = dfgh.drop([df_main.index[i],])
 df_main = dfgh
 # print(df_main)
@@ -387,9 +381,9 @@ marginn=dict(zip(w.Symbol,w.Margin))
 
 
 # ddays = int(input('Enter no. of days for backtesting'))
-ddays = 18
+ddays = 13
 ddays = ddays * 75 - 1
-llays = 2
+llays = 0
 llays = llays * 75 + 6
 
 star = 0
@@ -408,7 +402,7 @@ for i in range(ddays, llays, -1):
         continue
     rtyui = dt.strptime(str(df_main.index[-1*i])[:19], '%Y-%m-%d %H:%M:%S')
     if rtyui > dattt:
-        v, b, n, m = bolling_macd(i, 1.006, 1.004, 0.0015, 0.002, 1.0035)
+        v, b, n, m = bolling_macd(i, 1.006, 1.0025, 0.0015, 0.002, 1.002)
         Total = Total + v
         Profit = Profit + b
         Loss = Loss + n
