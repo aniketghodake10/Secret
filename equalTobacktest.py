@@ -86,7 +86,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                     df_close.iloc[-2] < flsr(df_open.iloc[-2] * 0.992)) and (
                     df_close.iloc[-1] > flsr(df_close.iloc[-2] * 1.008)) and (
                     (df_low.iloc[-1] - df_open.iloc[-1]) / df_open.iloc[-1] > -0.007) and (
-                    df_close.iloc[-1] < flsr(df_open.iloc[-2] * 0.998)):
+                    df_close.iloc[-1] < df_open.iloc[-2]):
                 baddy = 1
             # for i in range(1, 6):
             #     if df_close.iloc[-1*i] > df_close.iloc[-1*i-1]:
@@ -95,6 +95,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
 
         aniket = 'none'
         if baddy == 1:
+            print('baddy1 ', stk, df.index[-1])
             sl1 = flsr(2 - sl)
             sl1 = flsr(df_low.iloc[-1] / df_high.iloc[-1])
             trr = flsr(trgett)
@@ -108,30 +109,35 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                 print(stk + ' df 1m dateTime error  ', e)
                 baddy = 0
 
-            try:
-                df_1m_samco = df_1m_samco[aalist:aalist2 + 1]
-            except Exception:
-                df_1m_samco = df_1m_samco[aalist:]
+            if baddy == 1:
+                try:
+                    df_1m_samco = df_1m_samco[aalist:aalist2 + 1]
+                except Exception:
+                    df_1m_samco = df_1m_samco[aalist:]
 
-            for jkl in [0, 1, 2, 3, 4]:
-                if gogogo != 'go1':
-                    break
-                if df_1m_samco['high'].iloc[jkl] >= df_high.iloc[-1]:
-                    tkl = jkl
-                    gogogo = 'go'
-                    # if jkl !=4:
-                    #     for vkl in range(jkl, tkl + 1):
-                    #         if df_1m_samco['low'].iloc[vkl] <= flsr(0.9962 * df_close.iloc[-1]):
-                    #             gogogo = 'notgo'
-                    #             break
-                    break
-            # if gogogo != 'go1':
-            #     for tkl in [0, 1, 2, 3, 4]:
-            #         if df_1m_samco['high'].iloc[tkl] >= flsr(1.0007 * df_close.iloc[-1]):
-            #             gogogo = 'po'
-            #             break
+                print(df_1m_samco)
+
+                for jkl in [0, 1, 2, 3, 4]:
+                    if gogogo != 'go1':
+                        break
+                    if df_1m_samco['high'].iloc[jkl] >= df_high.iloc[-1]:
+                        tkl = jkl
+                        gogogo = 'go'
+                        print('tkl', tkl)
+                        # if jkl !=4:
+                        #     for vkl in range(jkl, tkl + 1):
+                        #         if df_1m_samco['low'].iloc[vkl] <= flsr(0.9962 * df_close.iloc[-1]):
+                        #             gogogo = 'notgo'
+                        #             break
+                        break
+                # if gogogo != 'go1':
+                #     for tkl in [0, 1, 2, 3, 4]:
+                #         if df_1m_samco['high'].iloc[tkl] >= flsr(1.0007 * df_close.iloc[-1]):
+                #             gogogo = 'po'
+                #             break
             if gogogo == 'go' or gogogo == 'po' and baddy == 1:
                 if df_1m_samco['high'].iloc[tkl] >= df_high.iloc[-1]:
+                    print('trade initiated')
                     datetime_samco1 = df_1m_samco['dateTime'].iloc[tkl][:19]
                     datetime_samco = dt.strptime(datetime_samco1, '%Y-%m-%d %H:%M:%S')
                     df_close_rada = df_high.iloc[-1]
@@ -188,6 +194,7 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                                 dattt = df_1m_samco['dateTime'].iloc[-1 * i][:19]
                                 dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
         if baddy == 2:
+            print('baddy2 ', stk, df.index[-1])
             sl = flsr(df_high.iloc[-1] / df_low.iloc[-1])
             trgett1 = flsr(2 - trgett)
             mintarget1 = flsr(2 - mintarget)
@@ -202,30 +209,35 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                 print(stk + ' df 1m dateTime error  ', e)
                 baddy = 0
 
-            try:
-                df_1m_samco = df_1m_samco[aalist:aalist2 + 1]
-            except Exception:
-                df_1m_samco = df_1m_samco[aalist:]
+            if baddy == 2:
+                try:
+                    df_1m_samco = df_1m_samco[aalist:aalist2 + 1]
+                except Exception:
+                    df_1m_samco = df_1m_samco[aalist:]
 
-            for jkl in [0, 1, 2, 3, 4]:
-                if gogogo != 'go1':
-                    break
-                if df_1m_samco['low'].iloc[jkl] <= df_low.iloc[-1]:
-                    tkl = jkl
-                    gogogo = 'go'
-                    # if jkl != 4:
-                    #     for vkl in range(jkl, tkl + 1):
-                    #         if df_1m_samco['high'].iloc[vkl] >= flsr(1.0038 * df_close.iloc[-1]):
-                    #             gogogo = 'notgo'
-                    #             break
-                    break
-            # if gogogo != 'go1':
-            #     for tkl in [0, 1, 2, 3, 4]:
-            #         if df_1m_samco['low'].iloc[tkl] <= flsr(0.9993 * df_close.iloc[-1]):
-            #             gogogo = 'po'
-            #             break
+                print(df_1m_samco)
+
+                for jkl in [0, 1, 2, 3, 4]:
+                    if gogogo != 'go1':
+                        break
+                    if df_1m_samco['low'].iloc[jkl] <= df_low.iloc[-1]:
+                        tkl = jkl
+                        gogogo = 'go'
+                        print('tkl',tkl)
+                        # if jkl != 4:
+                        #     for vkl in range(jkl, tkl + 1):
+                        #         if df_1m_samco['high'].iloc[vkl] >= flsr(1.0038 * df_close.iloc[-1]):
+                        #             gogogo = 'notgo'
+                        #             break
+                        break
+                # if gogogo != 'go1':
+                #     for tkl in [0, 1, 2, 3, 4]:
+                #         if df_1m_samco['low'].iloc[tkl] <= flsr(0.9993 * df_close.iloc[-1]):
+                #             gogogo = 'po'
+                #             break
             if gogogo == 'go' or gogogo == 'po' and baddy == 2:
                 if df_1m_samco['low'].iloc[tkl] <= df_low.iloc[-1]:
+                    print('trade initiated')
                     datetime_samco1 = df_1m_samco['dateTime'].iloc[tkl][:19]
                     datetime_samco = dt.strptime(datetime_samco1, '%Y-%m-%d %H:%M:%S')
                     df_close_rada = df_low.iloc[-1]
@@ -355,7 +367,7 @@ st = st[:-1]
 st = st.replace('\'', '')
 st = st.replace(',', '')
 
-df_main = yf.download(tickers=st, start='2021-03-22',interval='5m')
+df_main = yf.download(tickers=st, start='2021-03-23',interval='5m')
 dfgh = df_main
 for i in range(len(df_main)):
     if str(df_main.index[i])[:10] == '2021-02-24':
