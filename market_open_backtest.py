@@ -16,7 +16,7 @@ def read_token_from_config_file(config, key):
     return parser.get('creds', key)
 
 def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
-    global samco,df_main,Stock_samco1,stocklist,pandl,dattt,pandlP,marginn,listtttttttt_pl, dictt_test, ddays
+    global samco,df_main,Stock_samco1,stocklist,pandl,dattt,pandlP,marginn,listtttttttt_pl, dictt_pandl, ddays
 
     period_rsi = 14
     period_bollinger = 20
@@ -28,7 +28,11 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
 
     outputt,profitt,losss,neutral = [], [],[],[]
     for stk in stocklist:
-        if str(df.index[-1])[11:19] != '09:15:00' or yeyy == ddays * 75:
+        try:
+            if str(df.index[-1])[11:19] != '09:15:00' or yeyy == ddays * 75:
+                break
+        except Exception as e:
+            print(e)
             break
         baddy = 0
         gogogo = 'start'
@@ -64,8 +68,16 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                 except Exception:
                     df_1m_samco = df_1m_samco[aalist:]
 
-                df_close_rada = df_open.iloc[-1]
-                for i in range(len(df_1m_samco) , 0, -1):
+                for jkl in [0, 1, 2, 3, 4]:
+                    if df_1m_samco['high'].iloc[jkl] > flsr(1.0035 * df_open.iloc[-1]):
+                        baddy = 1
+                        break
+                    else:
+                        baddy = 0
+
+            if baddy == 1:
+                df_close_rada = flsr(1.0035 * df_open.iloc[-1])
+                for i in range(len(df_1m_samco) - jkl, 0, -1):
                     if aniket[0] == 'p':
                         if trr == flsr(trgett + stepp):
                             if df_1m_samco['low'].iloc[-1 * i] <= flsr(flsr(mintarget) * df_close_rada):
@@ -138,8 +150,16 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
                 except Exception:
                     df_1m_samco = df_1m_samco[aalist:]
 
-                df_close_rada = df_open.iloc[-1]
-                for i in range(len(df_1m_samco) , 0, -1):
+                for jkl in [0, 1, 2, 3, 4]:
+                    if df_1m_samco['low'].iloc[jkl] < flsr(0.9965 * df_open.iloc[-1]):
+                        baddy = 2
+                        break
+                    else:
+                        baddy = 0
+
+            if baddy == 2:
+                df_close_rada = flsr(0.9965 * df_open.iloc[-1])
+                for i in range(len(df_1m_samco) - jkl, 0, -1):
                     if aniket[0] == 'p':
                         if trr == flsr(trgett1 - stepp):
                             if df_1m_samco['high'].iloc[-1 * i] >= flsr(flsr(mintarget1) * df_close_rada):
@@ -200,35 +220,47 @@ def bolling_macd(yeyy,sl,trgett,stepp,sqstepp,mintarget):
             margink = 1
 
         if aniket[0] == 'p':
+            try:
+                dictt_profit_trades[stk[:-3]] = dictt_profit_trades[stk[:-3]] + 1
+            except Exception:
+                dictt_profit_trades[stk[:-3]] = 1
             if aniket[-2:] == 'up':
                 profitt.append(float('{:.2f}'.format((float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)])))-1)*100)))
                 pandlP = flsr(pandlP + float('{:.2f}'.format((float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)]))) - 1)*100)))
-                pandlop = flsr((200 * float('{:.2f}'.format((float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)]))) - 1)*100)) - 18 - 20)*margink)
+                pandlop = flsr((200 * float('{:.2f}'.format((float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)]))) - 1)*100)) - 18 - 40)*margink)
                 pandl = flsr(pandl + pandlop)
             if aniket[-2:] == 'do':
                 profitt.append(float('{:.2f}'.format((1-float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)]))))*100)))
                 pandlP = flsr(pandlP + float('{:.2f}'.format((1 - float('{:.4f}'.format(float(aniket[1:len(aniket)-2-len(stk)]))))*100)))
-                pandlop = flsr((200 * float('{:.2f}'.format((1 - float('{:.4f}'.format(float(aniket[1:len(aniket) - 2 - len(stk)])))) * 100)) - 18 - 20) * margink)
+                pandlop = flsr((200 * float('{:.2f}'.format((1 - float('{:.4f}'.format(float(aniket[1:len(aniket) - 2 - len(stk)])))) * 100)) - 18 - 40) * margink)
                 pandl = flsr(pandl + pandlop)
 
 
         if aniket[:4] == 'loss':
             losss.append(aniket)
+            try:
+                dictt_loss_trades[stk[:-3]] = dictt_loss_trades[stk[:-3]] + 1
+            except Exception:
+                dictt_loss_trades[stk[:-3]] = 1
             if baddy == 2:
                 pandlP = flsr(pandlP - flsr((sl-1)*100))
-                pandlop = flsr(((-1 * flsr((sl - 1) * 100)) * 200 - 18 - 20) * margink)
+                pandlop = flsr(((-1 * flsr((sl - 1) * 100)) * 200 - 18 - 40) * margink)
             if baddy == 1:
                 pandlP = flsr(pandlP - flsr((1 - sl1) * 100))
-                pandlop = flsr(((-1 * flsr((1 - sl1)*100)) * 200 - 18 - 20) * margink)
+                pandlop = flsr(((-1 * flsr((1 - sl1)*100)) * 200 - 18 - 40) * margink)
             pandl = flsr(pandl + pandlop)
         if aniket[:4] == 'neut':
             neutral.append(aniket)
+            try:
+                dictt_neutral_trades[stk[:-3]] = dictt_neutral_trades[stk[:-3]] + 1
+            except Exception:
+                dictt_neutral_trades[stk[:-3]] = 1
         if aniket!='none':
             outputt.append(aniket)
             try:
-                dictt_test[stk[:-3]] = dictt_test[stk[:-3]] + pandlop
+                dictt_pandl[stk[:-3]] = dictt_pandl[stk[:-3]] + pandlop
             except Exception:
-                dictt_test[stk[:-3]] = pandlop
+                dictt_pandl[stk[:-3]] = pandlop
     if len(outputt) != 0:
         listtttttttt_pl.append(pandl)
         print(' margin is ', margink, ' Entry time ', str(df.index[-1])[:19], '       ',
@@ -249,14 +281,18 @@ samco = StocknoteAPIPythonBridge()
 # samco.set_session_token(sessionToken=login['sessionToken'])
 
 
-csv_2=pd.read_csv('ind_nifty500list.csv')
-Stock_samco1=csv_2.loc[:, 'Symbol':'Symbol']
-Stock_samco1=Stock_samco1.Symbol
-Stock_samco1=Stock_samco1.tolist()
-Stock_samco1.remove('BAJFINANCE')
-Stock_samco1.insert(0,'BAJFINANCE')
-Stock_samco1.remove('DIXON')
-Stock_samco1.remove('ASTRAL')
+# csv_2=pd.read_csv('ind_nifty500list.csv')
+# Stock_samco1=csv_2.loc[:, 'Symbol':'Symbol']
+# Stock_samco1=Stock_samco1.Symbol
+# Stock_samco1=Stock_samco1.tolist()
+# Stock_samco1.remove('BAJFINANCE')
+# Stock_samco1.insert(0,'BAJFINANCE')
+# Stock_samco1.remove('DIXON')
+# Stock_samco1.remove('ASTRAL')
+# Stock_samco1.remove('FINPIPE')
+
+Stock_samco1 = ['ATGL','ASHOKA','ADANITRANS','GICRE']
+
 
 stocklist = []
 for i in Stock_samco1:
@@ -269,7 +305,7 @@ st = st[:-1]
 st = st.replace('\'', '')
 st = st.replace(',', '')
 
-df_main = yf.download(tickers=st, start='2021-03-23', interval='5m')
+df_main = yf.download(tickers=st, start='2021-02-25', interval='5m')
 dfgh = df_main
 for i in range(len(df_main)):
     if str(df_main.index[i])[:10] == '2021-02-24':
@@ -289,21 +325,26 @@ marginn=dict(zip(w.Symbol,w.Margin))
 
 
 # ddays = int(input('Enter no. of days for backtesting'))
-ddays = 18
+ddays = 36
 ddays = ddays * 75
-llays = 3
+llays = 0
 llays = llays * 75
 
 pandl = 0
 pandlP = 0
-dictt_test = {}
+dictt_pandl = {}
+dictt_profit_trades = {}
+dictt_loss_trades = {}
+dictt_neutral_trades = {}
 listtttttttt_pl = []
 Total, Profit, Loss, Neutral = 0, 0, 0, 0
 dattt = '2020-01-01 12:00:00'
 dattt = dt.strptime(dattt, '%Y-%m-%d %H:%M:%S')
 print(dt.now(),'\n')
 for i in range(ddays, llays, -1):
-    v, b, n, m = bolling_macd(i, 1.006, 1.0025, 0.0015, 0.002, 1.002)
+    if str(df_main.index[:-1 * i+1])[:10] == '2021-02-25':
+        continue
+    v, b, n, m = bolling_macd(i, 1.002, 1.0025, 0.002, 0.0015, 1.002)
     Total = Total + v
     Profit = Profit + b
     Loss = Loss + n
@@ -312,13 +353,35 @@ print('Total=',Total,'         Profit Trades=', Profit,'        Loss Trades=', L
 print('p&l in percentage is ', pandlP,'\n')
 print('p&l is ', pandl,'\n')
 
-print(dictt_test)
-maxkey = max(dictt_test, key=dictt_test.get)
-# maxkey1 = (dictt_test, key=dictt_test.get)
-maxkey2 = min(dictt_test, key=dictt_test.get)
-print(maxkey, ' max= ', dictt_test[maxkey])
-# print(maxkey1, ' avg= ', dictt_test[maxkey1])
-print(maxkey2, ' min= ', dictt_test[maxkey2])
+print(dictt_pandl)
+print(dictt_profit_trades)
+print(dictt_loss_trades)
+print(dictt_neutral_trades)
+maxkey = max(dictt_pandl, key=dictt_pandl.get)
+# maxkey1 = (dictt_pandl, key=dictt_pandl.get)
+maxkey2 = min(dictt_pandl, key=dictt_pandl.get)
+print(maxkey, ' max= ', dictt_pandl[maxkey])
+print(dictt_profit_trades[maxkey])
+try:
+    print(dictt_loss_trades[maxkey])
+except Exception:
+    pass
+try:
+    print(dictt_neutral_trades[maxkey])
+except Exception:
+    pass
+# print(maxkey1, ' avg= ', dictt_pandl[maxkey1])
+print(maxkey2, ' min= ', dictt_pandl[maxkey2])
+
+sorttt = sorted(dictt_pandl,key=dictt_pandl.get,reverse=True)
+print(sorttt)
+jjj = 0
+for r in sorttt:
+    jjj = jjj + 1
+    print(r,dictt_pandl[r])
+    if jjj > 10:
+        break
+
 
 plt.style.use('dark_background')
 plt.plot(listtttttttt_pl)
